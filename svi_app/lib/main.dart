@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'features/auth/presentation/screens/register_screen.dart';
+import 'features/auth/presentation/screens/login_screen.dart';
 
 void main() {
   runApp(const SviApp());
@@ -18,7 +18,7 @@ class SviApp extends StatelessWidget {
         useMaterial3: true,
         fontFamily: 'Roboto',
       ),
-      home: const RegisterScreen(),
+      home: const LoginScreen(),
     );
   }
 }
