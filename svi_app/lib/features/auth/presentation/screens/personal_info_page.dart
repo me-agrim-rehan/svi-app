@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../widgets/registration_text_field.dart';
+import '../widgets/occupation_autocomplete_field.dart';
 
 class PersonalInfoPage extends StatelessWidget {
   const PersonalInfoPage({
@@ -68,11 +69,8 @@ class PersonalInfoPage extends StatelessWidget {
             ],
           ),
 
-          RegistrationTextField(
-            label: 'Occupation',
-            hintText: 'Mason, driver, security guard...',
-            controller: occupationController,
-          ),
+          OccupationAutocompleteField(controller: occupationController),
+
           RegistrationTextField(
             label: 'Description (optional)',
             hintText: 'Years of experience, tools you own, shifts you prefer...',

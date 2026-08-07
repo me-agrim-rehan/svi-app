@@ -10,12 +10,14 @@ class VerificationPage extends StatelessWidget {
     required this.otpController,
     required this.aadhaarController,
     required this.onSendOtp,
+    required this.isSendingOtp,
   });
 
   final TextEditingController phoneController;
   final TextEditingController otpController;
   final TextEditingController aadhaarController;
   final VoidCallback onSendOtp;
+  final bool isSendingOtp;
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +53,7 @@ class VerificationPage extends StatelessWidget {
                 child: SizedBox(
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: onSendOtp,
+                    onPressed: isSendingOtp ? null : onSendOtp,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.softBlue,
                       foregroundColor: AppColors.navy,
@@ -60,7 +62,16 @@ class VerificationPage extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    child: const Text('Send OTP'),
+                    child: isSendingOtp
+                        ? const SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.navy,
+                            ),
+                          )
+                        : const Text('Send OTP'),
                   ),
                 ),
               ),
