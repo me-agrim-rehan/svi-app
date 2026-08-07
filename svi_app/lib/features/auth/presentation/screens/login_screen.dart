@@ -2,10 +2,28 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import 'register_screen.dart';
+import '../../../../services/auth_service.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final phoneController = TextEditingController();
+  final otpController = TextEditingController();
+
+  final AuthService authService = AuthService();
+  @override
+  void dispose() {
+    phoneController.dispose();
+    otpController.dispose();
+    super.dispose();
+  }
+
+  bool isLoading = false;
   void _showComingSoon(BuildContext context, String feature) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('$feature will be connected later.')),
@@ -18,10 +36,7 @@ class LoginScreen extends StatelessWidget {
       hintStyle: const TextStyle(color: AppColors.mutedText),
       filled: true,
       fillColor: AppColors.inputBackground,
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 14,
-        vertical: 14,
-      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: const BorderSide(color: AppColors.border),
@@ -32,10 +47,7 @@ class LoginScreen extends StatelessWidget {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(
-          color: AppColors.navy,
-          width: 1.5,
-        ),
+        borderSide: const BorderSide(color: AppColors.navy, width: 1.5),
       ),
     );
   }
@@ -67,33 +79,25 @@ class LoginScreen extends StatelessWidget {
               const SizedBox(height: 28),
               const Text(
                 'Welcome back',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 6),
               const Text(
                 'Sign in with a one-time password',
-                style: TextStyle(
-                  color: AppColors.mutedText,
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: AppColors.mutedText, fontSize: 14),
               ),
               const SizedBox(height: 36),
 
               const Text(
                 'Phone number',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
               Row(
                 children: [
                   Expanded(
                     child: TextFormField(
+                      controller: phoneController,
                       keyboardType: TextInputType.phone,
                       decoration: _inputDecoration('+91 98765 43210'),
                     ),
@@ -102,7 +106,38 @@ class LoginScreen extends StatelessWidget {
                   SizedBox(
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: () => _showComingSoon(context, 'OTP sending'),
+                      onPressed: () async {
+                        if (phoneController.text.trim().isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Please enter your phone number"),
+                            ),
+                          );
+                          return;
+                        }
+
+                        setState(() {
+                          isLoading = true;
+                        });
+
+                        final success = await authService.sendOtp(
+                          phoneController.text.trim(),
+                        );
+
+                        setState(() {
+                          isLoading = false;
+                        });
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              success
+                                  ? "OTP sent successfully"
+                                  : "Failed to send OTP",
+                            ),
+                          ),
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.softBlue,
                         foregroundColor: AppColors.navy,
@@ -120,13 +155,11 @@ class LoginScreen extends StatelessWidget {
 
               const Text(
                 'Enter OTP',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
               TextFormField(
+                controller: otpController,
                 keyboardType: TextInputType.number,
                 decoration: _inputDecoration('0  0  0  0  0  0'),
               ),
@@ -146,10 +179,7 @@ class LoginScreen extends StatelessWidget {
                   ),
                   child: const Text(
                     'Verify & sign in',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
@@ -160,9 +190,7 @@ class LoginScreen extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) => const RegisterScreen(),
-                      ),
+                      MaterialPageRoute(builder: (_) => const RegisterScreen()),
                     );
                   },
                   child: const Text.rich(
