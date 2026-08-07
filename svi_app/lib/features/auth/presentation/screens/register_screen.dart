@@ -1,15 +1,71 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_colors.dart';
-import '../widgets/registration_text_field.dart';
+import 'personal_info_page.dart';
+import 'verification_page.dart';
+import 'documents_page.dart';
 
-class RegisterScreen extends StatelessWidget {
+class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
-  void _showComingSoon(BuildContext context, String feature) {
+  @override
+  State<RegisterScreen> createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+
+  // Shared controllers across all 3 pages
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _cityController = TextEditingController();
+  final _stateController = TextEditingController();
+  final _occupationController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _otpController = TextEditingController();
+  final _aadhaarController = TextEditingController();
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    _nameController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
+    _cityController.dispose();
+    _stateController.dispose();
+    _occupationController.dispose();
+    _descriptionController.dispose();
+    _otpController.dispose();
+    _aadhaarController.dispose();
+    super.dispose();
+  }
+
+  void _showComingSoon(String feature) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('$feature will be connected later.')),
     );
+  }
+
+  void _goNext() {
+    if (_currentPage < 2) {
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    } else {
+      _showComingSoon('Account creation');
+    }
+  }
+
+  void _goBack() {
+    if (_currentPage > 0) {
+      _pageController.previousPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
   }
 
   @override
@@ -17,268 +73,101 @@ class RegisterScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(22),
-          child: Form(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 58,
-                  height: 58,
-                  decoration: BoxDecoration(
-                    color: AppColors.navy,
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: const Icon(
-                    Icons.construction_outlined,
-                    color: Colors.white,
-                    size: 30,
-                  ),
-                ),
-                const SizedBox(height: 28),
-                const Text(
-                  'Create your account',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Verified registration takes about two minutes',
-                  style: TextStyle(
-                    color: AppColors.mutedText,
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 36),
-
-                const RegistrationTextField(label: 'Full name'),
-
-                Row(
-                  children: [
-                    const Expanded(
-                      child: RegistrationTextField(
-                        label: 'Phone number',
-                        hintText: '+91 00000 00000',
-                        keyboardType: TextInputType.phone,
+        child: Column(
+          children: [
+            // Simple progress indicator
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+              child: Row(
+                children: List.generate(3, (i) {
+                  return Expanded(
+                    child: Container(
+                      margin: EdgeInsets.only(right: i != 2 ? 8 : 0),
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: i <= _currentPage
+                            ? AppColors.navy
+                            : AppColors.border,
+                        borderRadius: BorderRadius.circular(4),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 27),
-                      child: SizedBox(
-                        height: 50,
-                        child: ElevatedButton(
-                          onPressed: () => _showComingSoon(context, 'OTP sending'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.softBlue,
-                            foregroundColor: AppColors.navy,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
+                  );
+                }),
+              ),
+            ),
+            Expanded(
+              child: PageView(
+                controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(), // swipe off, buttons only
+                onPageChanged: (i) => setState(() => _currentPage = i),
+                 children: [
+                  PersonalInfoPage(
+                    nameController: _nameController,
+                    addressController: _addressController,
+                    cityController: _cityController,
+                    stateController: _stateController,
+                    occupationController: _occupationController,
+                    descriptionController: _descriptionController,
+                  ),
+                  VerificationPage(
+                    phoneController: _phoneController,
+                    otpController: _otpController,
+                    aadhaarController: _aadhaarController,
+                    onSendOtp: () => _showComingSoon('OTP sending'),
+                  ),
+                  DocumentsPage(
+                    onUpload: () => _showComingSoon('Photo upload'),
+                    onOpenCamera: () => _showComingSoon('Camera verification'),
+                    onCreateAccount: _goNext,
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(22),
+              child: Row(
+                children: [
+                  if (_currentPage > 0)
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: _goBack,
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size.fromHeight(52),
+                          foregroundColor: AppColors.navy,
+                          side: const BorderSide(color: AppColors.border),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const Text('Send OTP'),
+                        ),
+                        child: const Text('Back'),
+                      ),
+                    ),
+                  if (_currentPage > 0) const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _goNext,
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(52),
+                        backgroundColor: AppColors.navy,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        _currentPage < 2 ? 'Next' : 'Create account',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
-                  ],
-                ),
-
-                const RegistrationTextField(
-                  label: 'Enter OTP',
-                  hintText: '0  0  0  0  0  0',
-                  keyboardType: TextInputType.number,
-                ),
-                const RegistrationTextField(label: 'Address'),
-
-                const Row(
-                  children: [
-                    Expanded(
-                      child: RegistrationTextField(
-                        label: 'City',
-                        hintText: 'Pune',
-                      ),
-                    ),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: RegistrationTextField(
-                        label: 'State',
-                        hintText: 'Maharashtra',
-                      ),
-                    ),
-                  ],
-                ),
-
-                const RegistrationTextField(
-                  label: 'Occupation',
-                  hintText: 'Mason, driver, security guard...',
-                ),
-                const RegistrationTextField(
-                  label: 'Description (optional)',
-                  hintText: 'Years of experience, tools you own, shifts you prefer...',
-                  maxLines: 3,
-                ),
-                const RegistrationTextField(
-                  label: 'Aadhaar number',
-                  hintText: '0000 0000 0000',
-                  keyboardType: TextInputType.number,
-                ),
-
-                _UploadCard(
-                  onUpload: () => _showComingSoon(context, 'Photo upload'),
-                ),
-                const SizedBox(height: 20),
-                _SelfieCard(
-                  onOpenCamera: () =>
-                      _showComingSoon(context, 'Camera verification'),
-                ),
-                const SizedBox(height: 20),
-
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: () =>
-                        _showComingSoon(context, 'Account creation'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.navy,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: const Text(
-                      'Create account',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+          ],
         ),
-      ),
-    );
-  }
-}
-
-class _UploadCard extends StatelessWidget {
-  const _UploadCard({required this.onUpload});
-
-  final VoidCallback onUpload;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: AppColors.border),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Aadhaar card photo',
-            style: TextStyle(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 4),
-          const Text(
-            'Clear photo of the front side.',
-            style: TextStyle(color: AppColors.mutedText, fontSize: 12),
-          ),
-          const SizedBox(height: 14),
-          OutlinedButton.icon(
-            onPressed: onUpload,
-            icon: const Icon(Icons.upload_outlined),
-            label: const Text('Upload Aadhaar photo'),
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size.fromHeight(46),
-              foregroundColor: AppColors.navy,
-              side: const BorderSide(
-                color: AppColors.border,
-                style: BorderStyle.solid,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SelfieCard extends StatelessWidget {
-  const _SelfieCard({required this.onOpenCamera});
-
-  final VoidCallback onOpenCamera;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: AppColors.border),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          const CircleAvatar(
-            radius: 38,
-            backgroundColor: AppColors.softBlue,
-            child: Icon(
-              Icons.camera_alt_outlined,
-              color: AppColors.mutedText,
-              size: 30,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Live selfie verification',
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Take a photo. It is matched with your Aadhaar photo.',
-                  style: TextStyle(
-                    color: AppColors.mutedText,
-                    fontSize: 12,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                SizedBox(
-                  height: 38,
-                  child: ElevatedButton.icon(
-                    onPressed: onOpenCamera,
-                    icon: const Icon(Icons.camera_alt_outlined, size: 18),
-                    label: const Text('Open camera'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.navy,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

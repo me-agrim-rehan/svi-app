@@ -9,12 +9,14 @@ class RegistrationTextField extends StatelessWidget {
     this.hintText,
     this.keyboardType,
     this.maxLines = 1,
+    this.controller,
   });
 
   final String label;
   final String? hintText;
   final TextInputType? keyboardType;
   final int maxLines;
+  final TextEditingController? controller;
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +35,7 @@ class RegistrationTextField extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           TextFormField(
+            controller: controller,
             keyboardType: keyboardType,
             maxLines: maxLines,
             decoration: InputDecoration(
