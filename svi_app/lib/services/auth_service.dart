@@ -11,30 +11,29 @@ class AuthService {
   /// Send OTP
   Future<bool> sendOtp(String phone) async {
     try {
-      final response = await http.post(
-        Uri.parse("${ApiConstants.baseUrl}/otp/send-otp"),
-        headers: {
-          "Content-Type": "application/json",
-          "ngrok-skip-browser-warning": "true",
-        },
+      developer.log("=== sendOtp() called ===");
 
+      developer.log("Phone: $phone");
+
+      developer.log("Base URL: ${ApiConstants.baseUrl}");
+
+      final uri = Uri.parse("${ApiConstants.baseUrl}/otp/send-otp");
+
+      developer.log("Request URI: $uri");
+      developer.log("Sending HTTP POST...");
+
+      final response = await http.post(
+        uri,
+        headers: {"Content-Type": "application/json"},
         body: jsonEncode({"phone": phone}),
       );
 
-      developer.log(
-        'Send OTP status code: ${response.statusCode}',
-        name: 'AuthService',
-      );
-      developer.log('Send OTP response: ${response.body}', name: 'AuthService');
+      developer.log("Status Code: ${response.statusCode}");
+      developer.log("Response: ${response.body}");
 
       return response.statusCode == 200;
     } catch (e, s) {
-      developer.log(
-        'Send OTP Error',
-        error: e,
-        stackTrace: s,
-        name: 'AuthService',
-      );
+      developer.log("sendOtp Exception: $e", stackTrace: s);
       return false;
     }
   }
