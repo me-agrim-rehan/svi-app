@@ -1,96 +1,77 @@
-// lib/core/constants/occupation_data.dart
+import 'dart:convert';
 
-// ============================================================================
-// 🚧 TEMPORARY HARDCODED DATA — DB INTEGRATION POINT 🚧
-// ------------------------------------------------------------------------
-// DB TEAM: this is the single source of truth for occupation categories +
-// subroles until a backend endpoint exists. Two things read from this file:
-//   1. occupation_autocomplete_field.dart — shows CATEGORY NAMES ONLY
-//      (e.g. "Mason") when the user types their occupation.
-//   2. preferred_jobs_page.dart — shows CATEGORY + ALL ITS SUBROLES
-//      (e.g. "Mason" header, with "Brickwork / Concrete / Plastering" chips)
-//
-// Suggested endpoint: GET /api/occupations returning:
-//   [ { "category": "Mason", "subroles": ["Brickwork","Concrete","Plastering"] }, ... ]
-//
-// Once that exists: delete the static `categories` map, add a
-// fetchOccupations() call to RegistrationService, fetch once in
-// RegisterScreen.initState(), and pass the result down instead of
-// OccupationData.categories. Then delete this file.
-// ============================================================================
+import 'package:http/http.dart' as http;
+import 'package:svi_app/core/network/api_constants.dart';
+
 class OccupationData {
-  static const Map<String, List<String>> categories = {
-    'Mason': ['Brickwork', 'Concrete', 'Plastering'],
-    'Carpenter': ['Shuttering', 'Furniture'],
-    'Steel Fixer': ['Bar Bender', 'Steel Work'],
-    'Tile & Stone Fitter': ['Tiles', 'Marble', 'Granite'],
-    'Painter & Finishing Worker': [
-      'Painter',
-      'Polisher',
-      'POP/Gypsum',
-      'Waterproofing',
-    ],
-    'Welder & Fabricator': [
-      'Arc',
-      'TIG',
-      'MIG',
-      'Gas Welding',
-      'Structural Fabrication',
-    ],
-    'Electrician': [
-      'Electrician',
-      'Cable Puller',
-      'Instrumentation',
-      'AC/HVAC Technician',
-    ],
-    'Plumber': [
-      'Pipe Fitter',
-      'Sanitary Fitter',
-      'Sprinkler',
-      'Fire Fighting',
-    ],
-    'Heavy Equipment Operator': ['JCB', 'Excavator', 'Crane', 'Forklift'],
-    'Machine Operator': [
-      'Industrial Machines',
-      'Boiler Operator',
-      'Mechanical Fitter',
-      'Turner',
-    ],
-    'Housekeeping & Facility Staff': [
-      'Housekeeping',
-      'Sweeper',
-      'Gardener',
-      'Pantry',
-      'Window Cleaning',
-    ],
-    'Pest Control Technician': [
-      'Pest Control',
-      'Fumigation',
-      'Termite Control',
-    ],
-    'Security Staff': [
-      'Security Guard',
-      'Armed Guard',
-      'Fire Watchman',
-      'Traffic Marshal',
-    ],
-    'General Labour': [
-      'Helper',
-      'Loader',
-      'Site Cleaner',
-      'Head Load Worker',
-      'Water Boy',
-    ],
-    'Site Supervisor & Safety': [
-      'Site Supervisor',
-      'Foreman',
-      'Safety Officer',
-      'Store Keeper',
-      'QC Inspector',
-      'Surveyor',
-    ],
-  };
+  OccupationData._();
 
-  /// Just category titles — used by the occupation autocomplete field.
-  static List<String> get categoryTitles => categories.keys.toList();
+  static final List<String> _allOptions = [];
+
+  static bool _isLoading = false;
+  static bool _loaded = false;
+
+  /// Returns only job categories.
+  static List<String> get allOptions {
+    _loadFromBackend();
+    return List.unmodifiable(_allOptions);
+  }
+
+  static Future<void> _loadFromBackend() async {
+    if (_isLoading || _loaded) {
+      return;
+    }
+
+    _isLoading = true;
+
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/jobs'),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception(
+          'Failed to fetch jobs: ${response.statusCode}',
+        );
+      }
+
+      final List<dynamic> data = jsonDecode(response.body);
+
+      final List<String> categories = [];
+
+      for (final categoryData in data) {
+        final String category =
+            categoryData['category']?.toString().trim() ?? '';
+
+        if (category.isEmpty) {
+          continue;
+        }
+
+        categories.add(category);
+      }
+
+      _allOptions
+        ..clear()
+        ..addAll(categories);
+
+      _loaded = true;
+
+      print(
+        'OccupationData: loaded ${_allOptions.length} job categories',
+      );
+    } catch (e) {
+      print(
+        'OccupationData: failed to load jobs: $e',
+      );
+    } finally {
+      _isLoading = false;
+    }
+  }
+
+  static Future<void> refresh() async {
+    _loaded = false;
+    _allOptions.clear();
+
+    await _loadFromBackend();
+  }
 }

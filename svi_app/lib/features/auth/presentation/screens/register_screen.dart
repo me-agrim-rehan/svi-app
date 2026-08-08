@@ -19,16 +19,14 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final PageController _pageController = PageController();
-  int _currentPage = 0;
-  // Page order: 0 = Verification, 1 = Personal Info, 2 = Documents, 3 = Preferred Jobs
-  static const int _totalPages = 4;
-  static const int _maxPreferredJobs = 10;
+  int _currentPage = 0; // 0 = Verification, 1 = Personal Info, 2 = Documents
 
   final AuthService authService = AuthService();
   final RegistrationService registrationService = RegistrationService();
 
   bool _isSendingOtp = false;
   bool _isVerifyingOtp = false;
+  bool _isCreatingAccount = false;
   bool _otpVerified = false;
 
   final _nameController = TextEditingController();
@@ -58,52 +56,79 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _descriptionController.dispose();
     _otpController.dispose();
     _aadhaarController.dispose();
-    super.dispose();
-  }
 
-  void _showComingSoon(String feature) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$feature will be connected later.')),
-    );
+    super.dispose();
   }
 
   Future<void> _handleSendOtp() async {
     if (_phoneController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter your phone number')),
+        const SnackBar(
+          content: Text('Please enter your phone number'),
+        ),
       );
       return;
     }
 
-    setState(() => _isSendingOtp = true);
-    final success = await authService.sendOtp(_phoneController.text.trim());
-    setState(() => _isSendingOtp = false);
+    setState(() {
+      _isSendingOtp = true;
+    });
+
+    final success = await authService.sendOtp(
+      _phoneController.text.trim(),
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      _isSendingOtp = false;
+    });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(success ? 'OTP sent successfully' : 'Failed to send OTP')),
+      SnackBar(
+        content: Text(
+          success
+              ? 'OTP sent successfully'
+              : 'Failed to send OTP',
+        ),
+      ),
     );
   }
 
   Future<bool> _handleVerifyOtp() async {
     if (_otpController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter the OTP')),
+        const SnackBar(
+          content: Text('Please enter the OTP'),
+        ),
       );
       return false;
     }
 
-    setState(() => _isVerifyingOtp = true);
+    setState(() {
+      _isVerifyingOtp = true;
+    });
+
     final success = await authService.verifyOtp(
       _phoneController.text.trim(),
       _otpController.text.trim(),
     );
+
+    if (!mounted) return false;
+
     setState(() {
       _isVerifyingOtp = false;
       _otpVerified = success;
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(success ? 'OTP verified' : 'Invalid OTP, try again')),
+      SnackBar(
+        content: Text(
+          success
+              ? 'OTP verified'
+              : 'Invalid OTP, try again',
+        ),
+      ),
     );
 
     return success;
@@ -124,19 +149,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   // --------------------------------------------------------------------
-  // 🔌 BACKEND HOOKS — fire-and-forget for now, not gating navigation.
-  // See registration_service.dart. Once real endpoints exist, await these
-  // and gate _goNext on success like _handleVerifyOtp does.
+  // 🔌 BACKEND HOOKS — fire-and-forget for now (not awaited, don't block
+  // navigation). See registration_service.dart for endpoint placeholders.
+  // Once real endpoints exist: await these and gate _goNext on success,
+  // same pattern as _handleVerifyOtp above.
   // --------------------------------------------------------------------
   void _submitAadhaarNumber() {
     registrationService.submitAadhaarNumber(
       phone: _phoneController.text.trim(),
-      aadhaarNumber: _aadhaarController.text.trim(),
-    );
-  }
-
-  void _submitPersonalInfo() {
-    registrationService.submitPersonalInfo(
       name: _nameController.text.trim(),
       address: _addressController.text.trim(),
       city: _cityController.text.trim(),
@@ -149,44 +169,48 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void _submitDocuments() {
     registrationService.submitDocuments(
       phone: _phoneController.text.trim(),
-      aadhaarImage: _aadhaarImage,
-      selfieImage: _selfieImage,
     );
-  }
 
-  void _submitPreferredJobs() {
-    registrationService.submitPreferredJobs(
-      phone: _phoneController.text.trim(),
-      preferredJobs: _selectedPreferredJobs,
-    );
+    if (success) {
+      // TODO: Navigate to the dashboard/home screen.
+    }
   }
-  // --------------------------------------------------------------------
 
   Future<void> _goNext() async {
+    // ---------------------------------------------------------------
+    // PAGE 0: OTP verification
+    // ---------------------------------------------------------------
     if (_currentPage == 0) {
       if (!_otpVerified) {
         final verified = await _handleVerifyOtp();
-        if (!verified) return;
+
+        if (!verified) {
+          return;
+        }
       }
-      _submitAadhaarNumber();
+
+      await _pageController.nextPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+
+      return;
     }
 
+    // ---------------------------------------------------------------
+    // PAGE 1: Personal information
+    // ---------------------------------------------------------------
     if (_currentPage == 1) {
       _submitPersonalInfo();
     }
 
-    if (_currentPage == 2) {
-      _submitDocuments();
-    }
-
-    if (_currentPage < _totalPages - 1) {
+    if (_currentPage < 2) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
     } else {
-      // last page = Preferred Jobs
-      _submitPreferredJobs();
+      _submitDocuments();
       _showComingSoon('Account creation');
     }
   }
@@ -208,15 +232,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 22,
+                vertical: 12,
+              ),
               child: Row(
                 children: List.generate(_totalPages, (i) {
                   return Expanded(
                     child: Container(
-                      margin: EdgeInsets.only(right: i != _totalPages - 1 ? 8 : 0),
+                      margin: EdgeInsets.only(right: i != 2 ? 8 : 0),
                       height: 4,
                       decoration: BoxDecoration(
-                        color: i <= _currentPage ? AppColors.navy : AppColors.border,
+                        color: i <= _currentPage
+                            ? AppColors.navy
+                            : AppColors.border,
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -224,11 +253,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 }),
               ),
             ),
+
             Expanded(
               child: PageView(
                 controller: _pageController,
                 physics: const NeverScrollableScrollPhysics(),
-                onPageChanged: (i) => setState(() => _currentPage = i),
+                onPageChanged: (i) {
+                  setState(() {
+                    _currentPage = i;
+                  });
+                },
                 children: [
                   VerificationPage(
                     phoneController: _phoneController,
@@ -237,6 +271,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     onSendOtp: _handleSendOtp,
                     isSendingOtp: _isSendingOtp,
                   ),
+
                   PersonalInfoPage(
                     nameController: _nameController,
                     addressController: _addressController,
@@ -245,9 +280,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     occupationController: _occupationController,
                     descriptionController: _descriptionController,
                   ),
+
                   DocumentsPage(
-                    onAadhaarImagePicked: (file) => _aadhaarImage = file,
-                    onSelfieImagePicked: (file) => _selfieImage = file,
+                    onUpload: () => _showComingSoon('Photo upload'),
+                    onOpenCamera: () => _showComingSoon('Camera verification'),
                     onCreateAccount: _goNext,
                   ),
                   PreferredJobsPage(
@@ -258,6 +294,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ],
               ),
             ),
+
             Padding(
               padding: const EdgeInsets.all(22),
               child: Row(
@@ -265,11 +302,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   if (_currentPage > 0)
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: _goBack,
+                        onPressed: _isCreatingAccount
+                            ? null
+                            : _goBack,
                         style: OutlinedButton.styleFrom(
                           minimumSize: const Size.fromHeight(52),
                           foregroundColor: AppColors.navy,
-                          side: const BorderSide(color: AppColors.border),
+                          side: const BorderSide(
+                            color: AppColors.border,
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -277,10 +318,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         child: const Text('Back'),
                       ),
                     ),
-                  if (_currentPage > 0) const SizedBox(width: 12),
+
+                  if (_currentPage > 0)
+                    const SizedBox(width: 12),
+
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: _isVerifyingOtp ? null : _goNext,
+                      onPressed:
+                          (_isVerifyingOtp || _isCreatingAccount)
+                              ? null
+                              : _goNext,
                       style: ElevatedButton.styleFrom(
                         minimumSize: const Size.fromHeight(52),
                         backgroundColor: AppColors.navy,
@@ -299,7 +346,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                             )
                           : Text(
-                              _currentPage < _totalPages - 1 ? 'Next' : 'Create account',
+                              _currentPage < 2 ? 'Next' : 'Create account',
                               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                             ),
                     ),
@@ -313,3 +360,4 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 }
+
