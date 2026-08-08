@@ -30,7 +30,9 @@ class RegistrationService {
 
       final response = await http.post(
         uri,
-        headers: {"Content-Type": "application/json"},
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: jsonEncode({
           "phone": phone,
           "name": name,
@@ -45,11 +47,22 @@ class RegistrationService {
         }),
       );
 
-      developer.log("Status: ${response.statusCode}, Body: ${response.body}");
+      developer.log(
+        "Status Code: ${response.statusCode}",
+      );
 
-      return response.statusCode == 200;
+      developer.log(
+        "Response Body: ${response.body}",
+      );
+
+      return response.statusCode >= 200 &&
+          response.statusCode < 300;
     } catch (e, s) {
-      developer.log("createAccount Exception: $e", stackTrace: s);
+      developer.log(
+        "createAccount Exception: $e",
+        stackTrace: s,
+      );
+
       return false;
     }
   }

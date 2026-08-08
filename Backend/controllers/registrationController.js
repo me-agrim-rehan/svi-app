@@ -19,6 +19,14 @@ export async function createAccount(req, res) {
       aadhaarPhotoUrl,
       livePhotoUrl,
     } = req.body;
+    const cleanPhone = phone?.replace(/\D/g, "");
+
+    if (!cleanPhone || cleanPhone.length !== 10) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone number must contain exactly 10 digits",
+      });
+    }
 
     await client.query("BEGIN");
 
@@ -35,7 +43,7 @@ export async function createAccount(req, res) {
             ($1,$2,true)
             RETURNING id
             `,
-      [name, phone],
+      [name, cleanPhone],
     );
 
     const userId = userResult.rows[0].id;
