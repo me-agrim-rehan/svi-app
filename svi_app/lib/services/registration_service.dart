@@ -1,5 +1,4 @@
 // lib/services/registration_service.dart
-
 import 'dart:convert';
 import 'dart:developer' as developer;
 
