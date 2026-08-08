@@ -32,10 +32,9 @@ class OccupationAutocompleteField extends StatelessWidget {
               if (value.text.trim().isEmpty) {
                 return const Iterable<String>.empty();
               }
-              // TODO(DB): once OccupationData.allOptions is fetched from
-              // the backend instead of hardcoded, this filter logic can
-              // stay exactly the same.
-              return OccupationData.allOptions.where(
+              // DB: once OccupationData.categoryTitles comes from the
+              // backend, this filter logic stays the same.
+              return OccupationData.categoryTitles.where(
                 (option) =>
                     option.toLowerCase().contains(value.text.toLowerCase()),
               );

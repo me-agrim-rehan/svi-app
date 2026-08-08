@@ -2,6 +2,11 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+		<!-- ios/Runner/Info.plist, inside <dict> -->
+	<key>NSCameraUsageDescription</key>
+	<string>We need camera access to verify your identity with a selfie.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need photo access to upload your Aadhaar card.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

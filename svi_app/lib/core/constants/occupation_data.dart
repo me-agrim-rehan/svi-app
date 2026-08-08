@@ -1,19 +1,22 @@
 // lib/core/constants/occupation_data.dart
 
-// 👉 DB / BACKEND TEAM: replace this static map with data from the database.
-//    Suggested endpoint: GET /api/occupations returning something like:
-//    [
-//      { "category": "Mason", "subroles": ["Brickwork", "Concrete", "Plastering"] },
-//      ...
-//    ]
+// ============================================================================
+// 🚧 TEMPORARY HARDCODED DATA — DB INTEGRATION POINT 🚧
+// ------------------------------------------------------------------------
+// DB TEAM: this is the single source of truth for occupation categories +
+// subroles until a backend endpoint exists. Two things read from this file:
+//   1. occupation_autocomplete_field.dart — shows CATEGORY NAMES ONLY
+//      (e.g. "Mason") when the user types their occupation.
+//   2. preferred_jobs_page.dart — shows CATEGORY + ALL ITS SUBROLES
+//      (e.g. "Mason" header, with "Brickwork / Concrete / Plastering" chips)
 //
-// Once that endpoint exists:
-//   1. Delete the static `categories` map below.
-//   2. Add a `fetchOccupations()` method to RegistrationService that GETs
-//      the endpoint and returns the same shape (Map<String, List<String>>).
-//   3. Fetch it once (e.g. in RegisterScreen.initState) and pass the result
-//      down to OccupationAutocompleteField instead of OccupationData.allOptions.
-//   4. Delete this whole file when done.
+// Suggested endpoint: GET /api/occupations returning:
+//   [ { "category": "Mason", "subroles": ["Brickwork","Concrete","Plastering"] }, ... ]
+//
+// Once that exists: delete the static `categories` map, add a
+// fetchOccupations() call to RegistrationService, fetch once in
+// RegisterScreen.initState(), and pass the result down instead of
+// OccupationData.categories. Then delete this file.
 // ============================================================================
 class OccupationData {
   static const Map<String, List<String>> categories = {
@@ -88,15 +91,6 @@ class OccupationData {
     ],
   };
 
-  /// Flattened "Category (Subrole)" strings used by the autocomplete dropdown.
-  /// e.g. "Mason (Brickwork)", "Electrician (Cable Puller)"
-  static List<String> get allOptions {
-    final List<String> options = [];
-    categories.forEach((category, subroles) {
-      for (final sub in subroles) {
-        options.add('$category ($sub)');
-      }
-    });
-    return options;
-  }
+  /// Just category titles — used by the occupation autocomplete field.
+  static List<String> get categoryTitles => categories.keys.toList();
 }

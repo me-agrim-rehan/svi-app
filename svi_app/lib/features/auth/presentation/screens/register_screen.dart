@@ -1,11 +1,14 @@
+import 'package:image_picker/image_picker.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../services/auth_service.dart';
 import '../../../../services/registration_service.dart';
-import 'personal_info_page.dart';
 import 'verification_page.dart';
+import 'personal_info_page.dart';
 import 'documents_page.dart';
+import 'preferred_jobs_page.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -16,7 +19,10 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final PageController _pageController = PageController();
-  int _currentPage = 0; // 0 = Verification, 1 = Personal Info, 2 = Documents
+  int _currentPage = 0;
+  // Page order: 0 = Verification, 1 = Personal Info, 2 = Documents, 3 = Preferred Jobs
+  static const int _totalPages = 4;
+  static const int _maxPreferredJobs = 10;
 
   final AuthService authService = AuthService();
   final RegistrationService registrationService = RegistrationService();
@@ -34,6 +40,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _descriptionController = TextEditingController();
   final _otpController = TextEditingController();
   final _aadhaarController = TextEditingController();
+
+  final List<String> _selectedPreferredJobs = [];
+
+  XFile? _aadhaarImage;
+  XFile? _selfieImage;
 
   @override
   void dispose() {
@@ -98,11 +109,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return success;
   }
 
+  void _togglePreferredJob(String jobKey) {
+    setState(() {
+      if (_selectedPreferredJobs.contains(jobKey)) {
+        _selectedPreferredJobs.remove(jobKey);
+      } else if (_selectedPreferredJobs.length < _maxPreferredJobs) {
+        _selectedPreferredJobs.add(jobKey);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('You can only select up to $_maxPreferredJobs jobs')),
+        );
+      }
+    });
+  }
+
   // --------------------------------------------------------------------
-  // 🔌 BACKEND HOOKS — fire-and-forget for now (not awaited, don't block
-  // navigation). See registration_service.dart for endpoint placeholders.
-  // Once real endpoints exist: await these and gate _goNext on success,
-  // same pattern as _handleVerifyOtp above.
+  // 🔌 BACKEND HOOKS — fire-and-forget for now, not gating navigation.
+  // See registration_service.dart. Once real endpoints exist, await these
+  // and gate _goNext on success like _handleVerifyOtp does.
   // --------------------------------------------------------------------
   void _submitAadhaarNumber() {
     registrationService.submitAadhaarNumber(
@@ -125,6 +149,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void _submitDocuments() {
     registrationService.submitDocuments(
       phone: _phoneController.text.trim(),
+      aadhaarImage: _aadhaarImage,
+      selfieImage: _selfieImage,
+    );
+  }
+
+  void _submitPreferredJobs() {
+    registrationService.submitPreferredJobs(
+      phone: _phoneController.text.trim(),
+      preferredJobs: _selectedPreferredJobs,
     );
   }
   // --------------------------------------------------------------------
@@ -142,13 +175,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _submitPersonalInfo();
     }
 
-    if (_currentPage < 2) {
+    if (_currentPage == 2) {
+      _submitDocuments();
+    }
+
+    if (_currentPage < _totalPages - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
     } else {
-      _submitDocuments();
+      // last page = Preferred Jobs
+      _submitPreferredJobs();
       _showComingSoon('Account creation');
     }
   }
@@ -172,10 +210,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
               child: Row(
-                children: List.generate(3, (i) {
+                children: List.generate(_totalPages, (i) {
                   return Expanded(
                     child: Container(
-                      margin: EdgeInsets.only(right: i != 2 ? 8 : 0),
+                      margin: EdgeInsets.only(right: i != _totalPages - 1 ? 8 : 0),
                       height: 4,
                       decoration: BoxDecoration(
                         color: i <= _currentPage ? AppColors.navy : AppColors.border,
@@ -208,9 +246,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     descriptionController: _descriptionController,
                   ),
                   DocumentsPage(
-                    onUpload: () => _showComingSoon('Photo upload'),
-                    onOpenCamera: () => _showComingSoon('Camera verification'),
+                    onAadhaarImagePicked: (file) => _aadhaarImage = file,
+                    onSelfieImagePicked: (file) => _selfieImage = file,
                     onCreateAccount: _goNext,
+                  ),
+                  PreferredJobsPage(
+                    selectedJobs: _selectedPreferredJobs,
+                    onToggle: _togglePreferredJob,
+                    maxSelections: _maxPreferredJobs,
                   ),
                 ],
               ),
@@ -256,7 +299,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                             )
                           : Text(
-                              _currentPage < 2 ? 'Next' : 'Create account',
+                              _currentPage < _totalPages - 1 ? 'Next' : 'Create account',
                               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                             ),
                     ),

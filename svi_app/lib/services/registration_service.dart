@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 import 'dart:developer' as developer;
+import 'package:image_picker/image_picker.dart';
 
 import 'package:http/http.dart' as http;
 
@@ -72,9 +73,8 @@ class RegistrationService {
           "city": city,
           "state": state,
           // NOTE: `occupation` is currently the raw string typed/selected in
-          // the autocomplete field, e.g. "Mason (Brickwork)". DB guy: decide
-          // whether you want this split into category + subrole on the
-          // backend, or sent as one string. See occupation_data.dart.
+          // the autocomplete field, e.g. "Mason". DB guy: decide whether you
+          // want this split further on the backend. See occupation_data.dart.
           "occupation": occupation,
           "description": description,
         }),
@@ -88,18 +88,66 @@ class RegistrationService {
     }
   }
 
-  /// Step 3 (Documents page): Aadhaar photo + selfie.
+/// Step 3 (Documents page): Aadhaar photo + selfie.
   /// PLACEHOLDER endpoint: POST /register/documents
-  /// NOTE: no real files are wired up yet (upload/camera buttons just show
-  /// a snackbar). Once image picker is added, this needs to become a
-  /// multipart request (http.MultipartRequest) carrying the actual files,
-  /// not a plain JSON POST.
+  /// Sends actual files as multipart/form-data using bytes, so it works on
+  /// both web and mobile (no dart:io File / no filesystem paths needed).
   Future<bool> submitDocuments({
     required String phone,
+    XFile? aadhaarImage,
+    XFile? selfieImage,
   }) async {
     try {
       final uri = Uri.parse("${ApiConstants.baseUrl}/register/documents");
       developer.log("=== submitDocuments() called ===");
+      developer.log("Request URI: $uri");
+
+      final request = http.MultipartRequest("POST", uri);
+      request.fields["phone"] = phone;
+
+      if (aadhaarImage != null) {
+        final bytes = await aadhaarImage.readAsBytes();
+        // DB/BACKEND: confirm the expected field name for this file.
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            "aadhaar_photo",
+            bytes,
+            filename: aadhaarImage.name,
+          ),
+        );
+      }
+      if (selfieImage != null) {
+        final bytes = await selfieImage.readAsBytes();
+        // DB/BACKEND: confirm the expected field name for this file.
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            "selfie_photo",
+            bytes,
+            filename: selfieImage.name,
+          ),
+        );
+      }
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      developer.log("Status: ${response.statusCode}, Body: ${response.body}");
+      return response.statusCode == 200;
+    } catch (e, s) {
+      developer.log("submitDocuments Exception: $e", stackTrace: s);
+      return false;
+    }
+  }
+
+  /// Step 4 (Preferred Jobs page): selected job subcategories.
+  /// PLACEHOLDER endpoint: POST /register/preferred-jobs
+  Future<bool> submitPreferredJobs({
+    required String phone,
+    required List<String> preferredJobs, // "Category|Subrole" strings
+  }) async {
+    try {
+      final uri = Uri.parse("${ApiConstants.baseUrl}/register/preferred-jobs");
+      developer.log("=== submitPreferredJobs() called ===");
       developer.log("Request URI: $uri");
 
       final response = await http.post(
@@ -107,15 +155,16 @@ class RegistrationService {
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           "phone": phone,
-          // TODO(DB/BACKEND): replace with actual file upload (multipart)
-          // once image picker / camera capture is implemented.
+          // DB: sent as raw "Category|Subrole" strings for now. Decide if
+          // you want this split into category/subrole fields server-side.
+          "preferred_jobs": preferredJobs,
         }),
       );
 
       developer.log("Status: ${response.statusCode}, Body: ${response.body}");
       return response.statusCode == 200;
     } catch (e, s) {
-      developer.log("submitDocuments Exception: $e", stackTrace: s);
+      developer.log("submitPreferredJobs Exception: $e", stackTrace: s);
       return false;
     }
   }
