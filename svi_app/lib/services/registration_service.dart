@@ -1,9 +1,11 @@
 // lib/services/registration_service.dart
+
 import 'dart:convert';
 import 'dart:developer' as developer;
-import 'package:image_picker/image_picker.dart';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 
 import '../core/network/api_constants.dart';
 
@@ -17,8 +19,8 @@ class RegistrationService {
     required String occupation,
     required String description,
     required String aadhaarNumber,
-    required String aadhaarPhotoUrl,
-    required String livePhotoUrl,
+    required XFile aadhaarPhoto,
+    required XFile livePhoto,
   }) async {
     try {
       final uri = Uri.parse(
@@ -28,65 +30,81 @@ class RegistrationService {
       developer.log("=== createAccount() called ===");
       developer.log("Request URI: $uri");
 
-      final response = await http.post(
-        uri,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: jsonEncode({
-          "phone": phone,
-          "name": name,
-          "address": address,
-          "city": city,
-          "state": state,
-          // NOTE: `occupation` is currently the raw string typed/selected in
-          // the autocomplete field, e.g. "Mason (Brickwork)". DB guy: decide
-          // whether you want this split into category + subrole on the
-          // backend, or sent as one string. See occupation_data.dart.
-          "occupation": occupation,
-          "description": description,
-          "aadhaarNumber": aadhaarNumber,
-          "aadhaarPhotoUrl": aadhaarPhotoUrl,
-          "livePhotoUrl": livePhotoUrl,
-        }),
+      // Read images into memory.
+      // This works on Flutter Web as well as mobile.
+      final aadhaarBytes = await aadhaarPhoto.readAsBytes();
+      final livePhotoBytes = await livePhoto.readAsBytes();
+
+      final request = http.MultipartRequest("POST", uri);
+
+      // Registration fields
+      request.fields["phone"] = phone;
+      request.fields["name"] = name;
+      request.fields["address"] = address;
+      request.fields["city"] = city;
+      request.fields["state"] = state;
+      request.fields["occupation"] = occupation;
+      request.fields["description"] = description;
+      request.fields["aadhaarNumber"] = aadhaarNumber;
+
+      // Aadhaar image
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          "aadhaarPhoto",
+          aadhaarBytes,
+          filename: aadhaarPhoto.name,
+        ),
       );
 
-      developer.log("Status: ${response.statusCode}, Body: ${response.body}");
-      return response.statusCode == 200;
-    } catch (e, s) {
-      developer.log("submitPersonalInfo Exception: $e", stackTrace: s);
+      // Live/selfie image
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          "livePhoto",
+          livePhotoBytes,
+          filename: livePhoto.name,
+        ),
+      );
+
+      developer.log("Sending multipart registration request...");
+      developer.log(
+        "Aadhaar image: ${aadhaarPhoto.name} (${aadhaarBytes.length} bytes)",
+      );
+      developer.log(
+        "Live photo: ${livePhoto.name} (${livePhotoBytes.length} bytes)",
+      );
+
+      final streamedResponse = await request.send();
+
+      final response = await http.Response.fromStream(streamedResponse);
+
+      developer.log(
+        "Status: ${response.statusCode}, Body: ${response.body}",
+      );
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        try {
+          final data = jsonDecode(response.body);
+
+          if (data["success"] == true) {
+            developer.log("Account created successfully");
+            return true;
+          }
+        } catch (e) {
+          developer.log("Could not parse response JSON: $e");
+        }
+      }
+
       return false;
-    }
-  }
-
-  /// Step 3 (Documents page): Aadhaar photo + selfie.
-  /// PLACEHOLDER endpoint: POST /register/documents
-  /// NOTE: no real files are wired up yet (upload/camera buttons just show
-  /// a snackbar). Once image picker is added, this needs to become a
-  /// multipart request (http.MultipartRequest) carrying the actual files,
-  /// not a plain JSON POST.
-  Future<bool> submitDocuments({
-    required String phone,
-  }) async {
-    try {
-      final uri = Uri.parse("${ApiConstants.baseUrl}/register/documents");
-      developer.log("=== submitDocuments() called ===");
-      developer.log("Request URI: $uri");
-
-      final response = await http.post(
-        uri,
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "phone": phone,
-          // TODO(DB/BACKEND): replace with actual file upload (multipart)
-          // once image picker / camera capture is implemented.
-        }),
+    } catch (e, stackTrace) {
+      developer.log(
+        "createAccount Exception: $e",
+        stackTrace: stackTrace,
       );
 
-      developer.log("Status: ${response.statusCode}, Body: ${response.body}");
-      return response.statusCode == 200;
-    } catch (e, s) {
-      developer.log("submitDocuments Exception: $e", stackTrace: s);
+      if (kDebugMode) {
+        print("Registration error: $e");
+      }
+
       return false;
     }
   }

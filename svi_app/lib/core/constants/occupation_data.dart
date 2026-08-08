@@ -6,15 +6,55 @@ import 'package:svi_app/core/network/api_constants.dart';
 class OccupationData {
   OccupationData._();
 
-  static final List<String> _allOptions = [];
+  // Example:
+  // {
+  //   "Construction": ["Mason", "Bricklayer"],
+  //   "Electrical": ["Electrician", "Wireman"]
+  // }
+  static final Map<String, List<String>> _categories = {};
 
   static bool _isLoading = false;
   static bool _loaded = false;
 
-  /// Returns only job categories.
+  /// Returns:
+  /// Category -> list of subcategories/jobs
+  static Map<String, List<String>> get categories {
+    _loadFromBackend();
+
+    return Map.unmodifiable(
+      _categories.map(
+        (key, value) => MapEntry(
+          key,
+          List<String>.unmodifiable(value),
+        ),
+      ),
+    );
+  }
+
+  /// Returns only the category names.
+  static List<String> get categoryTitles {
+    _loadFromBackend();
+
+    return List.unmodifiable(_categories.keys);
+  }
+
+  /// Returns all available job/subrole names.
+  ///
+  /// Example:
+  /// Mason
+  /// Bricklayer
+  /// Electrician
+  /// Wireman
   static List<String> get allOptions {
     _loadFromBackend();
-    return List.unmodifiable(_allOptions);
+
+    final List<String> options = [];
+
+    for (final subroles in _categories.values) {
+      options.addAll(subroles);
+    }
+
+    return List.unmodifiable(options);
   }
 
   static Future<void> _loadFromBackend() async {
@@ -37,7 +77,7 @@ class OccupationData {
 
       final List<dynamic> data = jsonDecode(response.body);
 
-      final List<String> categories = [];
+      _categories.clear();
 
       for (final categoryData in data) {
         final String category =
@@ -47,17 +87,32 @@ class OccupationData {
           continue;
         }
 
-        categories.add(category);
-      }
+        final List<String> subcategories = [];
 
-      _allOptions
-        ..clear()
-        ..addAll(categories);
+        final dynamic rawSubcategories =
+            categoryData['subcategories'];
+
+        if (rawSubcategories is List) {
+          for (final subcategory in rawSubcategories) {
+            if (subcategory is Map) {
+              final String name =
+                  subcategory['name']?.toString().trim() ?? '';
+
+              if (name.isNotEmpty) {
+                subcategories.add(name);
+              }
+            }
+          }
+        }
+
+        _categories[category] = subcategories;
+      }
 
       _loaded = true;
 
       print(
-        'OccupationData: loaded ${_allOptions.length} job categories',
+        'OccupationData: loaded '
+        '${_categories.length} job categories',
       );
     } catch (e) {
       print(
@@ -70,7 +125,7 @@ class OccupationData {
 
   static Future<void> refresh() async {
     _loaded = false;
-    _allOptions.clear();
+    _categories.clear();
 
     await _loadFromBackend();
   }

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import 'register_screen.dart';
 import '../../../../services/auth_service.dart';
-
+import 'package:url_launcher/url_launcher.dart';
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -169,7 +169,27 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () => _showComingSoon(context, 'Sign in'),
+                  onPressed: () async {
+                    final success = await authService.verifyOtp(
+                      phoneController.text.trim(),
+                      otpController.text.trim(),
+                    );
+
+                    if (!mounted) return;
+
+                    if (success) {
+                      final url = Uri.parse('https://youtube.com');
+
+                      await launchUrl(
+                        url,
+                        mode: LaunchMode.externalApplication,
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Invalid OTP')),
+                      );
+                    }
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.navy,
                     foregroundColor: Colors.white,

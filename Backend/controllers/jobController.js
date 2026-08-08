@@ -1,3 +1,4 @@
+// Backend/controllers/jobController.js
 import pool from "../db.js";
 
 export const getJobs = async (req, res) => {

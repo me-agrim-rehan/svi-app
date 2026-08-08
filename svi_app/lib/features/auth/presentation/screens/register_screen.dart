@@ -1,6 +1,5 @@
-import 'package:image_picker/image_picker.dart';
-
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../services/auth_service.dart';
@@ -18,8 +17,12 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  static const int _totalPages = 4;
+  static const int _maxPreferredJobs = 3;
+
   final PageController _pageController = PageController();
-  int _currentPage = 0; // 0 = Verification, 1 = Personal Info, 2 = Documents
+
+  int _currentPage = 0;
 
   final AuthService authService = AuthService();
   final RegistrationService registrationService = RegistrationService();
@@ -47,6 +50,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   void dispose() {
     _pageController.dispose();
+
     _nameController.dispose();
     _phoneController.dispose();
     _addressController.dispose();
@@ -102,6 +106,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           content: Text('Please enter the OTP'),
         ),
       );
+
       return false;
     }
 
@@ -142,20 +147,120 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _selectedPreferredJobs.add(jobKey);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('You can only select up to $_maxPreferredJobs jobs')),
+          SnackBar(
+            content: Text(
+              'You can only select up to $_maxPreferredJobs jobs',
+            ),
+          ),
         );
       }
     });
   }
 
-  // --------------------------------------------------------------------
-  // 🔌 BACKEND HOOKS — fire-and-forget for now (not awaited, don't block
-  // navigation). See registration_service.dart for endpoint placeholders.
-  // Once real endpoints exist: await these and gate _goNext on success,
-  // same pattern as _handleVerifyOtp above.
-  // --------------------------------------------------------------------
-  void _submitAadhaarNumber() {
-    registrationService.submitAadhaarNumber(
+  Future<void> _createAccount() async {
+    if (_aadhaarImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please upload your Aadhaar photo'),
+        ),
+      );
+
+      await _pageController.animateToPage(
+        2,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+
+      return;
+    }
+
+    if (_selfieImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please take your selfie'),
+        ),
+      );
+
+      await _pageController.animateToPage(
+        2,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+
+      return;
+    }
+
+    if (_nameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter your name'),
+        ),
+      );
+
+      await _pageController.animateToPage(
+        1,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+
+      return;
+    }
+
+    if (_addressController.text.trim().isEmpty ||
+        _cityController.text.trim().isEmpty ||
+        _stateController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please complete your address details'),
+        ),
+      );
+
+      await _pageController.animateToPage(
+        1,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+
+      return;
+    }
+
+    if (_occupationController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select your occupation'),
+        ),
+      );
+
+      await _pageController.animateToPage(
+        1,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+
+      return;
+    }
+
+    if (_aadhaarController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter your Aadhaar number'),
+        ),
+      );
+
+      await _pageController.animateToPage(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+
+      return;
+    }
+
+    setState(() {
+      _isCreatingAccount = true;
+    });
+
+    final success = await registrationService.createAccount(
       phone: _phoneController.text.trim(),
       name: _nameController.text.trim(),
       address: _addressController.text.trim(),
@@ -163,16 +268,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
       state: _stateController.text.trim(),
       occupation: _occupationController.text.trim(),
       description: _descriptionController.text.trim(),
+      aadhaarNumber: _aadhaarController.text.trim(),
+      aadhaarPhoto: _aadhaarImage!,
+      livePhoto: _selfieImage!,
     );
-  }
 
-  void _submitDocuments() {
-    registrationService.submitDocuments(
-      phone: _phoneController.text.trim(),
-    );
+    if (!mounted) return;
+
+    setState(() {
+      _isCreatingAccount = false;
+    });
 
     if (success) {
-      // TODO: Navigate to the dashboard/home screen.
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Account created successfully'),
+        ),
+      );
+
+      // TODO:
+      // Navigate to your dashboard/home page here.
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Account creation failed. Please try again.',
+          ),
+        ),
+      );
     }
   }
 
@@ -201,22 +324,54 @@ class _RegisterScreenState extends State<RegisterScreen> {
     // PAGE 1: Personal information
     // ---------------------------------------------------------------
     if (_currentPage == 1) {
-      _submitPersonalInfo();
-    }
-
-    if (_currentPage < 2) {
-      _pageController.nextPage(
+      await _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
-    } else {
-      _submitDocuments();
-      _showComingSoon('Account creation');
+
+      return;
+    }
+
+    // ---------------------------------------------------------------
+    // PAGE 2: Documents
+    // ---------------------------------------------------------------
+    if (_currentPage == 2) {
+      if (_aadhaarImage == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please upload your Aadhaar photo'),
+          ),
+        );
+        return;
+      }
+
+      if (_selfieImage == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please take your selfie'),
+          ),
+        );
+        return;
+      }
+
+      await _pageController.nextPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+
+      return;
+    }
+
+    // ---------------------------------------------------------------
+    // PAGE 3: Preferred jobs → Create account
+    // ---------------------------------------------------------------
+    if (_currentPage == 3) {
+      await _createAccount();
     }
   }
 
   void _goBack() {
-    if (_currentPage > 0) {
+    if (_currentPage > 0 && !_isCreatingAccount) {
       _pageController.previousPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
@@ -237,20 +392,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 vertical: 12,
               ),
               child: Row(
-                children: List.generate(_totalPages, (i) {
-                  return Expanded(
-                    child: Container(
-                      margin: EdgeInsets.only(right: i != 2 ? 8 : 0),
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: i <= _currentPage
-                            ? AppColors.navy
-                            : AppColors.border,
-                        borderRadius: BorderRadius.circular(4),
+                children: List.generate(
+                  _totalPages,
+                  (i) {
+                    return Expanded(
+                      child: Container(
+                        margin: EdgeInsets.only(
+                          right: i != _totalPages - 1 ? 8 : 0,
+                        ),
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: i <= _currentPage
+                              ? AppColors.navy
+                              : AppColors.border,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
                       ),
-                    ),
-                  );
-                }),
+                    );
+                  },
+                ),
               ),
             ),
 
@@ -282,10 +442,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
 
                   DocumentsPage(
-                    onUpload: () => _showComingSoon('Photo upload'),
-                    onOpenCamera: () => _showComingSoon('Camera verification'),
+                    onAadhaarImagePicked: (file) {
+                      setState(() {
+                        _aadhaarImage = file;
+                      });
+                    },
+                    onSelfieImagePicked: (file) {
+                      setState(() {
+                        _selfieImage = file;
+                      });
+                    },
                     onCreateAccount: _goNext,
                   ),
+
                   PreferredJobsPage(
                     selectedJobs: _selectedPreferredJobs,
                     onToggle: _togglePreferredJob,
@@ -336,7 +505,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      child: _isVerifyingOtp
+                      child: _isVerifyingOtp || _isCreatingAccount
                           ? const SizedBox(
                               height: 20,
                               width: 20,
@@ -346,8 +515,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                             )
                           : Text(
-                              _currentPage < 2 ? 'Next' : 'Create account',
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                              _currentPage == _totalPages - 1
+                                  ? 'Create account'
+                                  : 'Next',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                     ),
                   ),
@@ -360,4 +534,3 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 }
-
