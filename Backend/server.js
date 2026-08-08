@@ -5,7 +5,7 @@ import pool from "./db.js"; // default import
 import otpRoutes from "./routes/otpRoutes.js";
 import cors from "cors";
 import registrationRoutes from "./routes/registrationRoutes.js";
-
+import jobRoutes from "./routes/jobRoutes.js";
 dotenv.config();
 
 const app = express();
@@ -18,6 +18,7 @@ app.use((req, res, next) => {
 });
 app.use("/otp", otpRoutes);
 app.use("/registration", registrationRoutes);
+app.use("/jobs", jobRoutes);
 
 pool.query("SELECT NOW()")
   .then((result) => {
