@@ -6,6 +6,7 @@ import otpRoutes from "./routes/otpRoutes.js";
 import cors from "cors";
 import registrationRoutes from "./routes/registrationRoutes.js";
 import jobRoutes from "./routes/jobRoutes.js";
+import loginRoutes from "./routes/loginRoutes.js";
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ app.use((req, res, next) => {
 });
 
 app.use("/otp", otpRoutes);
+app.use("/auth/login", loginRoutes);
 app.use("/registration", registrationRoutes);
 app.use("/jobs", jobRoutes);
 

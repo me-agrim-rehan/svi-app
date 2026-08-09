@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import 'register_screen.dart';
-import '../../../../services/auth_service.dart';
+import '../../../../services/login_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,7 +15,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final phoneController = TextEditingController();
   final otpController = TextEditingController();
 
-  final AuthService authService = AuthService();
+  final LoginService loginService = LoginService();
   @override
   void dispose() {
     phoneController.dispose();
@@ -120,7 +120,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           isLoading = true;
                         });
 
-                        final success = await authService.sendOtp(
+                        final success = await loginService.sendLoginOtp(
                           phoneController.text.trim(),
                         );
 
@@ -170,7 +170,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () async {
-                    final success = await authService.verifyOtp(
+                    final success = await loginService.verifyLoginOtp(
                       phoneController.text.trim(),
                       otpController.text.trim(),
                     );
