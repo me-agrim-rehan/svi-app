@@ -4,6 +4,8 @@ import '../../../../core/constants/app_colors.dart';
 import 'register_screen.dart';
 import '../../../../services/login_service.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/services.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -15,7 +17,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final phoneController = TextEditingController();
   final otpController = TextEditingController();
 
-  final LoginService loginService = LoginService();
+final LoginService loginService = LoginService();
+
   @override
   void dispose() {
     phoneController.dispose();
@@ -24,6 +27,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   bool isLoading = false;
+
+  String get _fullPhone => '+91${phoneController.text.trim()}';
+
   void _showComingSoon(BuildContext context, String feature) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('$feature will be connected later.')),
@@ -99,7 +105,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: TextFormField(
                       controller: phoneController,
                       keyboardType: TextInputType.phone,
-                      decoration: _inputDecoration('+91 98765 43210'),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(10),
+                      ],
+                      decoration: _inputDecoration('98765 43210').copyWith(
+                        prefixText: '+91 ',
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -120,9 +132,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           isLoading = true;
                         });
 
-                        final success = await loginService.sendLoginOtp(
-                          phoneController.text.trim(),
-                        );
+                        final success = await loginService.sendLoginOtp(_fullPhone);
 
                         setState(() {
                           isLoading = false;
@@ -161,6 +171,10 @@ class _LoginScreenState extends State<LoginScreen> {
               TextFormField(
                 controller: otpController,
                 keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(6),
+                ],
                 decoration: _inputDecoration('0  0  0  0  0  0'),
               ),
               const SizedBox(height: 16),
@@ -171,7 +185,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: ElevatedButton(
                   onPressed: () async {
                     final success = await loginService.verifyLoginOtp(
-                      phoneController.text.trim(),
+                      _fullPhone,
                       otpController.text.trim(),
                     );
 
