@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import 'package:flutter/services.dart';
 
 class RegistrationTextField extends StatelessWidget {
   const RegistrationTextField({
@@ -10,6 +11,8 @@ class RegistrationTextField extends StatelessWidget {
     this.keyboardType,
     this.maxLines = 1,
     this.controller,
+    this.prefixText,        
+    this.inputFormatters,  
   });
 
   final String label;
@@ -17,6 +20,8 @@ class RegistrationTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final int maxLines;
   final TextEditingController? controller;
+  final String? prefixText;                        
+  final List<TextInputFormatter>? inputFormatters;  
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +43,9 @@ class RegistrationTextField extends StatelessWidget {
             controller: controller,
             keyboardType: keyboardType,
             maxLines: maxLines,
+            inputFormatters: inputFormatters,
             decoration: InputDecoration(
+              prefixText: prefixText,
               hintText: hintText,
               hintStyle: const TextStyle(color: AppColors.mutedText),
               filled: true,

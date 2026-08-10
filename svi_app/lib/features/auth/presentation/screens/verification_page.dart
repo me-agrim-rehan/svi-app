@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../widgets/registration_text_field.dart';
+import 'package:flutter/services.dart';
 
 class VerificationPage extends StatelessWidget {
   const VerificationPage({
@@ -42,9 +43,14 @@ class VerificationPage extends StatelessWidget {
               Expanded(
                 child: RegistrationTextField(
                   label: 'Phone number',
-                  hintText: '+91 00000 00000',
+                  hintText: '98765 43210',
+                  prefixText: '+91 ',
                   keyboardType: TextInputType.phone,
                   controller: phoneController,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(10),
+                  ],
                 ),
               ),
               const SizedBox(width: 12),
@@ -89,6 +95,10 @@ class VerificationPage extends StatelessWidget {
             hintText: '0000 0000 0000',
             keyboardType: TextInputType.number,
             controller: aadhaarController,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(12),
+            ],
           ),
           const SizedBox(height: 12),
         ],
