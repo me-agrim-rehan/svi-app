@@ -7,7 +7,7 @@ import cors from "cors";
 import registrationRoutes from "./routes/registrationRoutes.js";
 import jobRoutes from "./routes/jobRoutes.js";
 import loginRoutes from "./routes/loginRoutes.js";
-
+import postedJobRoutes from "./routes/postedJobRoutes.js";
 dotenv.config();
 
 const app = express();
@@ -27,6 +27,7 @@ app.use("/otp", otpRoutes);
 app.use("/auth/login", loginRoutes);
 app.use("/registration", registrationRoutes);
 app.use("/jobs", jobRoutes);
+app.use("/posted-jobs", postedJobRoutes);
 
 pool.query("SELECT NOW()")
   .then((result) => {
