@@ -9,7 +9,6 @@ class Job {
   final String description;
   final String location;
   final String jobType;
-  final String workMode;
   final String salaryRange;
   final String category; // e.g. "Electrician"
   final String
@@ -24,7 +23,6 @@ class Job {
     required this.description,
     required this.location,
     required this.jobType,
-    required this.workMode,
     required this.salaryRange,
     required this.category,
     required this.subCategory,
@@ -54,29 +52,17 @@ class Job {
 
     return Job(
       id: json['id'].toString(),
-
       title: json['name'] ?? '',
-
       companyName: json['company'] ?? '',
-
       description: json['description'] ?? '',
-
       location: json['work_location'] ?? '',
-
       jobType: json['job_type'] ?? '',
-
-      workMode: json['work_mode'] ?? '',
-
       salaryRange: salaryRange,
-
       category: json['category'] ?? '',
-
       subCategory: json['subcategory'] ?? '',
-
       skillLevel: (json['skill_type']?.toString().toLowerCase() == 'unskilled')
           ? JobSkillLevel.unskilled
           : JobSkillLevel.skilled,
-
       isBookmarked: json['is_bookmarked'] ?? false,
     );
   }

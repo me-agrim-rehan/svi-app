@@ -12,6 +12,7 @@ class PersonalInfoPage extends StatelessWidget {
     required this.cityController,
     required this.stateController,
     required this.occupationController,
+    required this.experienceController,
     required this.descriptionController,
   });
 
@@ -20,6 +21,7 @@ class PersonalInfoPage extends StatelessWidget {
   final TextEditingController cityController;
   final TextEditingController stateController;
   final TextEditingController occupationController;
+  final TextEditingController experienceController;
   final TextEditingController descriptionController;
 
   @override
@@ -36,7 +38,10 @@ class PersonalInfoPage extends StatelessWidget {
           const SizedBox(height: 6),
           const Text(
             'Tell us a bit about yourself',
-            style: TextStyle(color: AppColors.mutedText, fontSize: 14),
+            style: TextStyle(
+              color: AppColors.mutedText,
+              fontSize: 14,
+            ),
           ),
           const SizedBox(height: 28),
 
@@ -44,6 +49,7 @@ class PersonalInfoPage extends StatelessWidget {
             label: 'Full name',
             controller: nameController,
           ),
+
           RegistrationTextField(
             label: 'Address',
             controller: addressController,
@@ -69,17 +75,27 @@ class PersonalInfoPage extends StatelessWidget {
             ],
           ),
 
-          OccupationAutocompleteField(controller: occupationController),
+          OccupationAutocompleteField(
+            controller: occupationController,
+          ),
+
+          RegistrationTextField(
+            label: 'Years of experience',
+            hintText: 'e.g. 5',
+            keyboardType: TextInputType.number,
+            controller: experienceController,
+          ),
 
           RegistrationTextField(
             label: 'Description (optional)',
-            hintText: 'Years of experience, tools you own, shifts you prefer...',
+            hintText: 'Tools you own, shifts you prefer...',
             maxLines: 3,
             controller: descriptionController,
           ),
+
           const SizedBox(height: 12),
         ],
       ),
     );
   }
-}  
+}

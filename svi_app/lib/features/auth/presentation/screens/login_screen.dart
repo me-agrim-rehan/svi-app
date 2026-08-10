@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import 'register_screen.dart';
-import 'home_screen.dart';
+import 'main_shell.dart';
 import '../../../../services/login_service.dart';
 import 'package:flutter/services.dart';
+import '../widgets/app_logo.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -64,19 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 26),
-              Container(
-                width: 58,
-                height: 58,
-                decoration: BoxDecoration(
-                  color: AppColors.navy,
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: const Icon(
-                  Icons.construction_outlined,
-                  color: Colors.white,
-                  size: 30,
-                ),
-              ),
+              const AppLogo(size: 52),
               const SizedBox(height: 28),
               const Text(
                 'Welcome back',
@@ -213,7 +202,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => HomeScreen(phone: _fullPhone),
+                                builder: (_) => MainShell(phone: _fullPhone),
                               ),
                             );
                           } else {

@@ -1,5 +1,3 @@
-// lib/services/registration_service.dart
-
 import 'dart:convert';
 import 'dart:developer' as developer;
 
@@ -17,6 +15,7 @@ class RegistrationService {
     required String city,
     required String state,
     required String occupation,
+    required String yearsOfExperience,
     required String description,
     required String aadhaarNumber,
     required XFile aadhaarPhoto,
@@ -30,8 +29,6 @@ class RegistrationService {
       developer.log("=== createAccount() called ===");
       developer.log("Request URI: $uri");
 
-      // Read images into memory.
-      // This works on Flutter Web as well as mobile.
       final aadhaarBytes = await aadhaarPhoto.readAsBytes();
       final livePhotoBytes = await livePhoto.readAsBytes();
 
@@ -44,6 +41,7 @@ class RegistrationService {
       request.fields["city"] = city;
       request.fields["state"] = state;
       request.fields["occupation"] = occupation;
+      request.fields["yearsOfExperience"] = yearsOfExperience;
       request.fields["description"] = description;
       request.fields["aadhaarNumber"] = aadhaarNumber;
 
@@ -75,13 +73,16 @@ class RegistrationService {
 
       final streamedResponse = await request.send();
 
-      final response = await http.Response.fromStream(streamedResponse);
+      final response = await http.Response.fromStream(
+        streamedResponse,
+      );
 
       developer.log(
         "Status: ${response.statusCode}, Body: ${response.body}",
       );
 
-      if (response.statusCode >= 200 && response.statusCode < 300) {
+      if (response.statusCode >= 200 &&
+          response.statusCode < 300) {
         try {
           final data = jsonDecode(response.body);
 
@@ -90,7 +91,9 @@ class RegistrationService {
             return true;
           }
         } catch (e) {
-          developer.log("Could not parse response JSON: $e");
+          developer.log(
+            "Could not parse response JSON: $e",
+          );
         }
       }
 
