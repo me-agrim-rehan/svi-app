@@ -47,6 +47,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   XFile? _aadhaarImage;
   XFile? _selfieImage;
 
+  // Phone field only stores 10 raw digits (see verification_page.dart's
+  // prefixText: '+91 '). This getter adds the country code back on for
+  // every service call.
+  String get _fullPhone => '+91${_phoneController.text.trim()}';
+
   @override
   void dispose() {
     _pageController.dispose();
@@ -78,9 +83,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _isSendingOtp = true;
     });
 
-    final success = await authService.sendOtp(
-      _phoneController.text.trim(),
-    );
+    final success = await authService.sendOtp(_fullPhone);
 
     if (!mounted) return;
 
@@ -115,7 +118,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
 
     final success = await authService.verifyOtp(
-      _phoneController.text.trim(),
+      _fullPhone,
       _otpController.text.trim(),
     );
 
@@ -261,7 +264,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
 
     final success = await registrationService.createAccount(
-      phone: _phoneController.text.trim(),
+      phone: _fullPhone,
       name: _nameController.text.trim(),
       address: _addressController.text.trim(),
       city: _cityController.text.trim(),
@@ -300,9 +303,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _goNext() async {
-    // ---------------------------------------------------------------
     // PAGE 0: OTP verification
-    // ---------------------------------------------------------------
     if (_currentPage == 0) {
       if (!_otpVerified) {
         final verified = await _handleVerifyOtp();
@@ -320,9 +321,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    // ---------------------------------------------------------------
     // PAGE 1: Personal information
-    // ---------------------------------------------------------------
     if (_currentPage == 1) {
       await _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
@@ -332,9 +331,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    // ---------------------------------------------------------------
     // PAGE 2: Documents
-    // ---------------------------------------------------------------
     if (_currentPage == 2) {
       if (_aadhaarImage == null) {
         ScaffoldMessenger.of(context).showSnackBar(
