@@ -103,14 +103,12 @@ class JobCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Row(
-              children: [
+            children: [
                 _Tag(label: job.location),
                 const SizedBox(width: 8),
-                _Tag(label: job.workMode),
-                const SizedBox(width: 8),
-                _Tag(label: job.jobType),
-              ],
-            ),
+                 _Tag(label: job.jobType),
+                  ],  
+                )               ,
             const SizedBox(height: 10),
             Text(
               job.salaryRange,

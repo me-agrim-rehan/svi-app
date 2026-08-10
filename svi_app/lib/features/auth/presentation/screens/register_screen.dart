@@ -8,7 +8,7 @@ import 'verification_page.dart';
 import 'personal_info_page.dart';
 import 'documents_page.dart';
 import 'preferred_jobs_page.dart';
-import 'home_screen.dart';
+import 'main_shell.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -19,7 +19,7 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   static const int _totalPages = 4;
-  static const int _maxPreferredJobs = 3;
+  static const int _maxPreferredJobs = 10;
 
   final PageController _pageController = PageController();
 
@@ -39,6 +39,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _cityController = TextEditingController();
   final _stateController = TextEditingController();
   final _occupationController = TextEditingController();
+
+  // NEW
+  final _experienceController = TextEditingController();
+
   final _descriptionController = TextEditingController();
   final _otpController = TextEditingController();
   final _aadhaarController = TextEditingController();
@@ -48,9 +52,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   XFile? _aadhaarImage;
   XFile? _selfieImage;
 
-  // Phone field only stores 10 raw digits (see verification_page.dart's
-  // prefixText: '+91 '). This getter adds the country code back on for
-  // every service call.
   String get _fullPhone => '+91${_phoneController.text.trim()}';
 
   @override
@@ -63,6 +64,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _cityController.dispose();
     _stateController.dispose();
     _occupationController.dispose();
+
+    // NEW
+    _experienceController.dispose();
+
     _descriptionController.dispose();
     _otpController.dispose();
     _aadhaarController.dispose();
@@ -95,9 +100,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          success
-              ? 'OTP sent successfully'
-              : 'Failed to send OTP',
+          success ? 'OTP sent successfully' : 'Failed to send OTP',
         ),
       ),
     );
@@ -133,9 +136,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          success
-              ? 'OTP verified'
-              : 'Invalid OTP, try again',
+          success ? 'OTP verified' : 'Invalid OTP, try again',
         ),
       ),
     );
@@ -244,6 +245,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
+    // NEW: validate years of experience
+    if (_experienceController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter your years of experience'),
+        ),
+      );
+
+      await _pageController.animateToPage(
+        1,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+
+      return;
+    }
+
     if (_aadhaarController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -271,6 +289,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       city: _cityController.text.trim(),
       state: _stateController.text.trim(),
       occupation: _occupationController.text.trim(),
+
+      // NEW
+      yearsOfExperience: _experienceController.text.trim(),
+
       description: _descriptionController.text.trim(),
       aadhaarNumber: _aadhaarController.text.trim(),
       aadhaarPhoto: _aadhaarImage!,
@@ -292,7 +314,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => HomeScreen(phone: _fullPhone)),
+        MaterialPageRoute(
+          builder: (_) => MainShell(phone: _fullPhone),
+        ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -306,7 +330,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _goNext() async {
-    // PAGE 0: OTP verification
     if (_currentPage == 0) {
       if (!_otpVerified) {
         final verified = await _handleVerifyOtp();
@@ -324,7 +347,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    // PAGE 1: Personal information
     if (_currentPage == 1) {
       await _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
@@ -334,7 +356,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    // PAGE 2: Documents
     if (_currentPage == 2) {
       if (_aadhaarImage == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -362,9 +383,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    // ---------------------------------------------------------------
-    // PAGE 3: Preferred jobs → Create account
-    // ---------------------------------------------------------------
     if (_currentPage == 3) {
       await _createAccount();
     }
@@ -438,6 +456,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     cityController: _cityController,
                     stateController: _stateController,
                     occupationController: _occupationController,
+
+                    // NEW
+                    experienceController: _experienceController,
+
                     descriptionController: _descriptionController,
                   ),
 
@@ -471,9 +493,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   if (_currentPage > 0)
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: _isCreatingAccount
-                            ? null
-                            : _goBack,
+                        onPressed:
+                            _isCreatingAccount ? null : _goBack,
                         style: OutlinedButton.styleFrom(
                           minimumSize: const Size.fromHeight(52),
                           foregroundColor: AppColors.navy,
@@ -505,7 +526,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      child: _isVerifyingOtp || _isCreatingAccount
+                      child: _isVerifyingOtp ||
+                              _isCreatingAccount
                           ? const SizedBox(
                               height: 20,
                               width: 20,
