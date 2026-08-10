@@ -8,6 +8,7 @@ import 'verification_page.dart';
 import 'personal_info_page.dart';
 import 'documents_page.dart';
 import 'preferred_jobs_page.dart';
+import 'home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -289,8 +290,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       );
 
-      // TODO:
-      // Navigate to your dashboard/home page here.
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => HomeScreen(phone: _fullPhone)),
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

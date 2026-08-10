@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import 'register_screen.dart';
+import 'home_screen.dart';
 import '../../../../services/login_service.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -17,7 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final phoneController = TextEditingController();
   final otpController = TextEditingController();
 
-final LoginService loginService = LoginService();
+  final LoginService loginService = LoginService();
 
   @override
   void dispose() {
@@ -27,14 +27,9 @@ final LoginService loginService = LoginService();
   }
 
   bool isLoading = false;
+  bool isVerifying = false;
 
   String get _fullPhone => '+91${phoneController.text.trim()}';
-
-  void _showComingSoon(BuildContext context, String feature) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$feature will be connected later.')),
-    );
-  }
 
   InputDecoration _inputDecoration(String hintText) {
     return InputDecoration(
@@ -118,36 +113,40 @@ final LoginService loginService = LoginService();
                   SizedBox(
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: () async {
-                        if (phoneController.text.trim().isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Please enter your phone number"),
-                            ),
-                          );
-                          return;
-                        }
+                      onPressed: isLoading
+                          ? null
+                          : () async {
+                              if (phoneController.text.trim().isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Please enter your phone number"),
+                                  ),
+                                );
+                                return;
+                              }
 
-                        setState(() {
-                          isLoading = true;
-                        });
+                              setState(() {
+                                isLoading = true;
+                              });
 
-                        final success = await loginService.sendLoginOtp(_fullPhone);
+                              final success = await loginService.sendLoginOtp(_fullPhone);
 
-                        setState(() {
-                          isLoading = false;
-                        });
+                              if (!mounted) return;
 
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              success
-                                  ? "OTP sent successfully"
-                                  : "Failed to send OTP",
-                            ),
-                          ),
-                        );
-                      },
+                              setState(() {
+                                isLoading = false;
+                              });
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    success
+                                        ? "OTP sent successfully"
+                                        : "Failed to send OTP",
+                                  ),
+                                ),
+                              );
+                            },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.softBlue,
                         foregroundColor: AppColors.navy,
@@ -156,7 +155,16 @@ final LoginService loginService = LoginService();
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      child: const Text('Send OTP'),
+                      child: isLoading
+                          ? const SizedBox(
+                              height: 18,
+                              width: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.navy,
+                              ),
+                            )
+                          : const Text('Send OTP'),
                     ),
                   ),
                 ],
@@ -183,27 +191,37 @@ final LoginService loginService = LoginService();
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () async {
-                    final success = await loginService.verifyLoginOtp(
-                      _fullPhone,
-                      otpController.text.trim(),
-                    );
+                  onPressed: isVerifying
+                      ? null
+                      : () async {
+                          setState(() {
+                            isVerifying = true;
+                          });
 
-                    if (!mounted) return;
+                          final success = await loginService.verifyLoginOtp(
+                            _fullPhone,
+                            otpController.text.trim(),
+                          );
 
-                    if (success) {
-                      final url = Uri.parse('https://youtube.com');
+                          if (!mounted) return;
 
-                      await launchUrl(
-                        url,
-                        mode: LaunchMode.externalApplication,
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Invalid OTP')),
-                      );
-                    }
-                  },
+                          setState(() {
+                            isVerifying = false;
+                          });
+
+                          if (success) {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => HomeScreen(phone: _fullPhone),
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Invalid OTP')),
+                            );
+                          }
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.navy,
                     foregroundColor: Colors.white,
@@ -211,10 +229,19 @@ final LoginService loginService = LoginService();
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  child: const Text(
-                    'Verify & sign in',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
+                  child: isVerifying
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          'Verify & sign in',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                        ),
                 ),
               ),
               const SizedBox(height: 16),
