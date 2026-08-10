@@ -39,49 +39,33 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadJobs() async {
     setState(() => _isLoading = true);
 
-    final results = await Future.wait([
-      _jobsService.fetchAllJobs(),
-      _jobsService.fetchUserProfile(phone: widget.phone),
-    ]);
+    try {
+      final profile = await _jobsService.fetchUserProfile(phone: widget.phone);
 
-    if (!mounted) return;
-
-    final allJobs = results[0] as List<Job>;
-    final profile = results[1] as UserJobProfile;
-
-    setState(() {
-      _sortedJobs = _sortJobsByPriority(allJobs, profile);
-      _isLoading = false;
-    });
-  }
-
-  List<Job> _sortJobsByPriority(List<Job> allJobs, UserJobProfile profile) {
-    final seenIds = <String>{};
-    final result = <Job>[];
-
-    for (final job in allJobs) {
-      final jobKey = '${job.category}|${job.subCategory}';
-      if (profile.preferredJobs.contains(jobKey) && seenIds.add(job.id)) {
-        result.add(job);
+      if (profile.userId.isEmpty) {
+        throw Exception("User ID not found");
       }
-    }
 
-    if (profile.occupationCategory.isNotEmpty) {
-      for (final job in allJobs) {
-        if (job.category == profile.occupationCategory &&
-            seenIds.add(job.id)) {
-          result.add(job);
-        }
-      }
-    }
+      final recommendedJobs = await _jobsService.fetchRecommendedJobs(
+        userId: profile.userId,
+      );
 
-    for (final job in allJobs) {
-      if (job.skillLevel == JobSkillLevel.unskilled && seenIds.add(job.id)) {
-        result.add(job);
-      }
-    }
+      if (!mounted) return;
 
-    return result;
+      setState(() {
+        _sortedJobs = recommendedJobs;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _sortedJobs = [];
+        _isLoading = false;
+      });
+
+      debugPrint("Error loading recommended jobs: $e");
+    }
   }
 
   void _toggleBookmark(Job job) {
@@ -92,9 +76,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _handleMenuSelection(String value) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$value will be connected later.')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('$value will be connected later.')));
   }
 
   List<Job> get _filteredJobs {
@@ -145,7 +129,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             onPressed: () {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text('Notifications will be connected later.'),
+                                  content: Text(
+                                    'Notifications will be connected later.',
+                                  ),
                                 ),
                               );
                             },
@@ -167,12 +153,24 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                       PopupMenuButton<String>(
-                        icon: const Icon(Icons.more_vert, color: AppColors.navy),
+                        icon: const Icon(
+                          Icons.more_vert,
+                          color: AppColors.navy,
+                        ),
                         onSelected: _handleMenuSelection,
                         itemBuilder: (context) => const [
-                          PopupMenuItem(value: 'Settings', child: Text('Settings')),
-                          PopupMenuItem(value: 'Help & support', child: Text('Help & support')),
-                          PopupMenuItem(value: 'Log out', child: Text('Log out')),
+                          PopupMenuItem(
+                            value: 'Settings',
+                            child: Text('Settings'),
+                          ),
+                          PopupMenuItem(
+                            value: 'Help & support',
+                            child: Text('Help & support'),
+                          ),
+                          PopupMenuItem(
+                            value: 'Log out',
+                            child: Text('Log out'),
+                          ),
                         ],
                       ),
                     ],
@@ -187,8 +185,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     onChanged: (_) => setState(() {}),
                     decoration: InputDecoration(
                       hintText: 'Search for roles, skills, or locations...',
-                      hintStyle: const TextStyle(color: AppColors.mutedText, fontSize: 13),
-                      prefixIcon: const Icon(Icons.search, color: AppColors.mutedText),
+                      hintStyle: const TextStyle(
+                        color: AppColors.mutedText,
+                        fontSize: 13,
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: AppColors.mutedText,
+                      ),
                       filled: true,
                       fillColor: AppColors.inputBackground,
                       contentPadding: const EdgeInsets.symmetric(vertical: 12),
@@ -228,21 +232,22 @@ class _HomeScreenState extends State<HomeScreen> {
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(22, 12, 22, 22),
                   sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final job = _filteredJobs[index];
-                        return JobCard(
-                          job: job,
-                          onBookmarkToggle: () => _toggleBookmark(job),
-                          onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('${job.title} details coming soon.')),
-                            );
-                          },
-                        );
-                      },
-                      childCount: _filteredJobs.length,
-                    ),
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final job = _filteredJobs[index];
+                      return JobCard(
+                        job: job,
+                        onBookmarkToggle: () => _toggleBookmark(job),
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '${job.title} details coming soon.',
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    }, childCount: _filteredJobs.length),
                   ),
                 ),
             ],

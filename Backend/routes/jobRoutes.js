@@ -1,3 +1,4 @@
+// Backend/routes/jobRoutes.js
 import express from "express";
 import { getJobs } from "../controllers/jobController.js";
 

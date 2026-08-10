@@ -8,6 +8,9 @@ import registrationRoutes from "./routes/registrationRoutes.js";
 import jobRoutes from "./routes/jobRoutes.js";
 import loginRoutes from "./routes/loginRoutes.js";
 import postedJobRoutes from "./routes/postedJobRoutes.js";
+import recommendedJobRoutes from "./routes/recommendedJobRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+
 dotenv.config();
 
 const app = express();
@@ -28,6 +31,8 @@ app.use("/auth/login", loginRoutes);
 app.use("/registration", registrationRoutes);
 app.use("/jobs", jobRoutes);
 app.use("/posted-jobs", postedJobRoutes);
+app.use("/recommended-jobs", recommendedJobRoutes);
+app.use("/users", userRoutes);
 
 pool.query("SELECT NOW()")
   .then((result) => {

@@ -11,8 +11,9 @@ class Job {
   final String jobType;
   final String workMode;
   final String salaryRange;
-  final String category;       // e.g. "Electrician"
-  final String subCategory;    // e.g. "Cable Puller" — empty string if not applicable
+  final String category; // e.g. "Electrician"
+  final String
+  subCategory; // e.g. "Cable Puller" — empty string if not applicable
   final JobSkillLevel skillLevel;
   bool isBookmarked;
 
@@ -38,20 +39,44 @@ class Job {
   // "unskilled" — matches your category table's skilled/unskilled flag.
   // ==========================================================================
   factory Job.fromJson(Map<String, dynamic> json) {
+    final salaryMin = json['salary_min'];
+    final salaryMax = json['salary_max'];
+
+    String salaryRange = '';
+
+    if (salaryMin != null && salaryMax != null) {
+      salaryRange = '₹$salaryMin - ₹$salaryMax';
+    } else if (salaryMin != null) {
+      salaryRange = '₹$salaryMin+';
+    } else if (salaryMax != null) {
+      salaryRange = 'Up to ₹$salaryMax';
+    }
+
     return Job(
       id: json['id'].toString(),
-      title: json['title'] ?? '',
-      companyName: json['company_name'] ?? '',
+
+      title: json['name'] ?? '',
+
+      companyName: json['company'] ?? '',
+
       description: json['description'] ?? '',
-      location: json['location'] ?? '',
+
+      location: json['work_location'] ?? '',
+
       jobType: json['job_type'] ?? '',
+
       workMode: json['work_mode'] ?? '',
-      salaryRange: json['salary_range'] ?? '',
+
+      salaryRange: salaryRange,
+
       category: json['category'] ?? '',
-      subCategory: json['sub_category'] ?? '',
-      skillLevel: (json['skill_level'] == 'unskilled')
+
+      subCategory: json['subcategory'] ?? '',
+
+      skillLevel: (json['skill_type']?.toString().toLowerCase() == 'unskilled')
           ? JobSkillLevel.unskilled
           : JobSkillLevel.skilled,
+
       isBookmarked: json['is_bookmarked'] ?? false,
     );
   }
