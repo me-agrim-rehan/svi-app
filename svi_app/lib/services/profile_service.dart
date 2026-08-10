@@ -1,18 +1,13 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
 import '../core/network/api_constants.dart';
 import '../core/models/user_profile.dart';
 
-// ============================================================================
-// 🔌 BACKEND INTEGRATION POINT — PROFILE
-// ------------------------------------------------------------------------
-// DB/BACKEND TEAM: every route below is a PLACEHOLDER guess. Confirm/adjust
-// paths and field names to match your real API.
-// ============================================================================
 class ProfileService {
   /// GET /users/profile?phone={phone}
   Future<UserProfile?> fetchProfile({
@@ -47,29 +42,72 @@ class ProfileService {
     }
   }
 
-  /// PATCH /users/profile — update name only.
+  /// PATCH /users/profile — update name.
   Future<bool> updateName({
     required String phone,
     required String name,
   }) async {
     return _patchProfile(
       phone: phone,
-      body: {"name": name},
+      body: {
+        "name": name,
+      },
     );
   }
 
-  /// PATCH /users/profile — update occupation only.
+  /// PATCH /users/profile — update address.
+  Future<bool> updateAddress({
+    required String phone,
+    required String address,
+  }) async {
+    return _patchProfile(
+      phone: phone,
+      body: {
+        "address": address,
+      },
+    );
+  }
+
+  /// PATCH /users/profile — update city.
+  Future<bool> updateCity({
+    required String phone,
+    required String city,
+  }) async {
+    return _patchProfile(
+      phone: phone,
+      body: {
+        "city": city,
+      },
+    );
+  }
+
+  /// PATCH /users/profile — update state.
+  Future<bool> updateState({
+    required String phone,
+    required String state,
+  }) async {
+    return _patchProfile(
+      phone: phone,
+      body: {
+        "state": state,
+      },
+    );
+  }
+
+  /// PATCH /users/profile — update occupation.
   Future<bool> updateOccupation({
     required String phone,
     required String occupation,
   }) async {
     return _patchProfile(
       phone: phone,
-      body: {"occupation": occupation},
+      body: {
+        "occupation": occupation,
+      },
     );
   }
 
-  /// PATCH /users/profile — update years of experience only.
+  /// PATCH /users/profile — update years of experience.
   Future<bool> updateYearsOfExperience({
     required String phone,
     required String yearsOfExperience,
@@ -82,10 +120,23 @@ class ProfileService {
     );
   }
 
-  /// PATCH /users/profile — update preferred jobs list.
+  /// PATCH /users/profile — update description.
+  Future<bool> updateDescription({
+    required String phone,
+    required String description,
+  }) async {
+    return _patchProfile(
+      phone: phone,
+      body: {
+        "description": description,
+      },
+    );
+  }
+
+  /// PATCH /users/profile — update preferred jobs.
   Future<bool> updatePreferredJobs({
     required String phone,
-    required List preferredJobs,
+    required List<String> preferredJobs,
   }) async {
     return _patchProfile(
       phone: phone,
@@ -123,18 +174,24 @@ class ProfileService {
       developer.log("Status: ${response.statusCode}");
       developer.log("Response: ${response.body}");
 
-      return response.statusCode == 200;
+      return response.statusCode >= 200 &&
+          response.statusCode < 300;
     } catch (e, s) {
       developer.log(
         "_patchProfile Exception: $e",
         stackTrace: s,
       );
+
+      if (kDebugMode) {
+        print("Profile update error: $e");
+      }
+
       return false;
     }
   }
 
-  /// POST /users/profile-photo — multipart upload for the profile picture.
-  /// Returns the new photo URL on success, or null on failure.
+  /// POST /users/profile-photo
+  /// Upload a new profile picture.
   Future<String?> updateProfilePhoto({
     required String phone,
     required XFile photo,
@@ -183,6 +240,7 @@ class ProfileService {
         "updateProfilePhoto Exception: $e",
         stackTrace: s,
       );
+
       return null;
     }
   }

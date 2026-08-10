@@ -67,7 +67,8 @@ class _ProfilePageState extends State<ProfilePage> {
       _isUploadingPhoto = true;
     });
 
-    final newUrl = await _profileService.updateProfilePhoto(
+    final newUrl =
+        await _profileService.updateProfilePhoto(
       phone: widget.phone,
       photo: picked,
     );
@@ -78,9 +79,8 @@ class _ProfilePageState extends State<ProfilePage> {
       _isUploadingPhoto = false;
 
       if (newUrl != null) {
-        _profile = _profile!.copyWith(
-          profilePhotoUrl: newUrl,
-        );
+        _profile =
+            _profile!.copyWith(profilePhotoUrl: newUrl);
       }
     });
 
@@ -95,133 +95,250 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  Future<void> _editName() async {
-    if (_profile == null) return;
+  Future<void> _editTextField({
+    required String title,
+    required String currentValue,
+    required String hintText,
+    required Future<bool> Function(String value) onSave,
+    TextInputType keyboardType = TextInputType.text,
+    int maxLines = 1,
+  }) async {
+    final controller =
+        TextEditingController(text: currentValue);
 
-    final controller = TextEditingController(
-      text: _profile!.name,
-    );
-
-    final newName = await showDialog<String>(
+    final newValue = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Edit name'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: const InputDecoration(
-            hintText: 'Full name',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(
-              context,
-              controller.text.trim(),
+      builder: (context) {
+        return AlertDialog(
+          title: Text(title),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            keyboardType: keyboardType,
+            maxLines: maxLines,
+            decoration: InputDecoration(
+              hintText: hintText,
             ),
-            child: const Text('Save'),
           ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(
+                  context,
+                  controller.text.trim(),
+                );
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
     );
 
-    if (newName == null ||
-        newName.isEmpty ||
-        newName == _profile!.name) {
+    if (newValue == null ||
+        newValue.isEmpty ||
+        newValue == currentValue) {
       return;
     }
 
-    final success = await _profileService.updateName(
-      phone: widget.phone,
-      name: newName,
-    );
+    final success = await onSave(newValue);
 
     if (!mounted) return;
 
-    if (success) {
-      setState(() {
-        _profile = _profile!.copyWith(
-          name: newName,
-        );
-      });
-    } else {
+    if (!success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
-            'Failed to update name. Please try again.',
+            'Failed to update $title. Please try again.',
           ),
         ),
       );
     }
   }
 
+  Future<void> _editName() async {
+    if (_profile == null) return;
+
+    await _editTextField(
+      title: 'Edit name',
+      currentValue: _profile!.name,
+      hintText: 'Full name',
+      onSave: (value) async {
+        final success =
+            await _profileService.updateName(
+          phone: widget.phone,
+          name: value,
+        );
+
+        if (success && mounted) {
+          setState(() {
+            _profile =
+                _profile!.copyWith(name: value);
+          });
+        }
+
+        return success;
+      },
+    );
+  }
+
+  Future<void> _editAddress() async {
+    if (_profile == null) return;
+
+    await _editTextField(
+      title: 'Edit address',
+      currentValue: _profile!.address,
+      hintText: 'Your address',
+      maxLines: 3,
+      onSave: (value) async {
+        final success =
+            await _profileService.updateAddress(
+          phone: widget.phone,
+          address: value,
+        );
+
+        if (success && mounted) {
+          setState(() {
+            _profile =
+                _profile!.copyWith(address: value);
+          });
+        }
+
+        return success;
+      },
+    );
+  }
+
+  Future<void> _editCity() async {
+    if (_profile == null) return;
+
+    await _editTextField(
+      title: 'Edit city',
+      currentValue: _profile!.city,
+      hintText: 'e.g. Pune',
+      onSave: (value) async {
+        final success =
+            await _profileService.updateCity(
+          phone: widget.phone,
+          city: value,
+        );
+
+        if (success && mounted) {
+          setState(() {
+            _profile =
+                _profile!.copyWith(city: value);
+          });
+        }
+
+        return success;
+      },
+    );
+  }
+
+  Future<void> _editState() async {
+    if (_profile == null) return;
+
+    await _editTextField(
+      title: 'Edit state',
+      currentValue: _profile!.state,
+      hintText: 'e.g. Maharashtra',
+      onSave: (value) async {
+        final success =
+            await _profileService.updateState(
+          phone: widget.phone,
+          state: value,
+        );
+
+        if (success && mounted) {
+          setState(() {
+            _profile =
+                _profile!.copyWith(state: value);
+          });
+        }
+
+        return success;
+      },
+    );
+  }
+
   Future<void> _editOccupation() async {
     if (_profile == null) return;
 
-    final controller = TextEditingController(
+    final controller =
+        TextEditingController(
       text: _profile!.occupation,
     );
 
-    final newOccupation = await showDialog<String>(
+    final newOccupation =
+        await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Edit occupation'),
-        content: Autocomplete<String>(
-          initialValue: TextEditingValue(
-            text: _profile!.occupation,
-          ),
-          optionsBuilder: (TextEditingValue value) {
-            if (value.text.trim().isEmpty) {
-              return const Iterable<String>.empty();
-            }
-
-            return OccupationData.categoryTitles.where(
-              (option) => option
-                  .toLowerCase()
-                  .contains(value.text.toLowerCase()),
-            );
-          },
-          onSelected: (selection) {
-            controller.text = selection;
-          },
-          fieldViewBuilder: (
-            context,
-            textController,
-            focusNode,
-            onSubmit,
-          ) {
-            return TextField(
-              controller: textController,
-              focusNode: focusNode,
-              autofocus: true,
-              onChanged: (val) {
-                controller.text = val;
-              },
-              decoration: const InputDecoration(
-                hintText:
-                    'e.g. Mason, Electrician...',
-              ),
-            );
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(
-              context,
-              controller.text.trim(),
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Edit occupation'),
+          content: Autocomplete<String>(
+            initialValue: TextEditingValue(
+              text: _profile!.occupation,
             ),
-            child: const Text('Save'),
+            optionsBuilder:
+                (TextEditingValue value) {
+              if (value.text.trim().isEmpty) {
+                return const Iterable<String>.empty();
+              }
+
+              return OccupationData.categoryTitles
+                  .where(
+                (option) => option
+                    .toLowerCase()
+                    .contains(
+                      value.text.toLowerCase(),
+                    ),
+              );
+            },
+            onSelected: (selection) {
+              controller.text = selection;
+            },
+            fieldViewBuilder: (
+              context,
+              textController,
+              focusNode,
+              onSubmit,
+            ) {
+              return TextField(
+                controller: textController,
+                focusNode: focusNode,
+                autofocus: true,
+                onChanged: (value) {
+                  controller.text = value;
+                },
+                decoration:
+                    const InputDecoration(
+                  hintText:
+                      'e.g. Mason, Electrician...',
+                ),
+              );
+            },
           ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () =>
+                  Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () =>
+                  Navigator.pop(
+                context,
+                controller.text.trim(),
+              ),
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
     );
 
     if (newOccupation == null ||
@@ -240,7 +357,8 @@ class _ProfilePageState extends State<ProfilePage> {
 
     if (success) {
       setState(() {
-        _profile = _profile!.copyWith(
+        _profile =
+            _profile!.copyWith(
           occupation: newOccupation,
         );
       });
@@ -255,69 +373,103 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  // NEW
   Future<void> _editExperience() async {
     if (_profile == null) return;
 
+    await _editTextField(
+      title: 'Edit years of experience',
+      currentValue:
+          _profile!.yearsOfExperience,
+      hintText: 'e.g. 5',
+      keyboardType: TextInputType.number,
+      onSave: (value) async {
+        final success =
+            await _profileService
+                .updateYearsOfExperience(
+          phone: widget.phone,
+          yearsOfExperience: value,
+        );
+
+        if (success && mounted) {
+          setState(() {
+            _profile =
+                _profile!.copyWith(
+              yearsOfExperience: value,
+            );
+          });
+        }
+
+        return success;
+      },
+    );
+  }
+
+  Future<void> _editDescription() async {
+    if (_profile == null) return;
+
     final controller = TextEditingController(
-      text: _profile!.yearsOfExperience,
+      text: _profile!.description,
     );
 
-    final newExperience = await showDialog<String>(
+    final newDescription =
+        await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text(
-          'Edit years of experience',
-        ),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            hintText: 'e.g. 5',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(
-              context,
-              controller.text.trim(),
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Edit description'),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            maxLines: 5,
+            decoration: const InputDecoration(
+              hintText:
+                  'Tools you own, shifts you prefer...',
             ),
-            child: const Text('Save'),
           ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () =>
+                  Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () =>
+                  Navigator.pop(
+                context,
+                controller.text.trim(),
+              ),
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
     );
 
-    if (newExperience == null ||
-        newExperience.isEmpty ||
-        newExperience == _profile!.yearsOfExperience) {
+    if (newDescription == null ||
+        newDescription == _profile!.description) {
       return;
     }
 
     final success =
-        await _profileService.updateYearsOfExperience(
+        await _profileService.updateDescription(
       phone: widget.phone,
-      yearsOfExperience: newExperience,
+      description: newDescription,
     );
 
     if (!mounted) return;
 
     if (success) {
       setState(() {
-        _profile = _profile!.copyWith(
-          yearsOfExperience: newExperience,
+        _profile =
+            _profile!.copyWith(
+          description: newDescription,
         );
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Failed to update. Please try again.',
+            'Failed to update description. Please try again.',
           ),
         ),
       );
@@ -327,12 +479,14 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _openPreferredJobs() async {
     if (_profile == null) return;
 
-    final updated = await Navigator.push<List<String>>(
+    final updated =
+        await Navigator.push<List<String>>(
       context,
       MaterialPageRoute(
         builder: (_) => PreferredJobsPage(
           phone: widget.phone,
-          selectedJobs: _profile!.preferredJobs,
+          selectedJobs:
+              _profile!.preferredJobs,
           standalone: true,
           maxSelections: 10,
         ),
@@ -341,7 +495,8 @@ class _ProfilePageState extends State<ProfilePage> {
 
     if (updated != null && mounted) {
       setState(() {
-        _profile = _profile!.copyWith(
+        _profile =
+            _profile!.copyWith(
           preferredJobs: updated,
         );
       });
@@ -405,6 +560,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
           const SizedBox(height: 4),
 
+          // Phone is intentionally displayed but not editable.
           Center(
             child: Text(
               _profile!.phone,
@@ -417,7 +573,62 @@ class _ProfilePageState extends State<ProfilePage> {
 
           const SizedBox(height: 28),
 
-          // Occupation
+          _SectionCard(
+            child: _EditableRow(
+              label: 'Address',
+              text: _profile!.address.isNotEmpty
+                  ? _profile!.address
+                  : 'Not set',
+              textStyle: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+              onEdit: _editAddress,
+            ),
+          ),
+
+          const SizedBox(height: 14),
+
+          _SectionCard(
+            child: Row(
+              children: [
+                Expanded(
+                  child: _EditableRow(
+                    label: 'City',
+                    text: _profile!.city.isNotEmpty
+                        ? _profile!.city
+                        : 'Not set',
+                    textStyle:
+                        const TextStyle(
+                      fontSize: 15,
+                      fontWeight:
+                          FontWeight.w600,
+                    ),
+                    onEdit: _editCity,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: _EditableRow(
+                    label: 'State',
+                    text: _profile!.state.isNotEmpty
+                        ? _profile!.state
+                        : 'Not set',
+                    textStyle:
+                        const TextStyle(
+                      fontSize: 15,
+                      fontWeight:
+                          FontWeight.w600,
+                    ),
+                    onEdit: _editState,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 14),
+
           _SectionCard(
             child: _EditableRow(
               label: 'Occupation',
@@ -434,11 +645,11 @@ class _ProfilePageState extends State<ProfilePage> {
 
           const SizedBox(height: 14),
 
-          // NEW: Years of experience
           _SectionCard(
             child: _EditableRow(
               label: 'Years of experience',
-              text: _profile!.yearsOfExperience.isNotEmpty
+              text: _profile!
+                      .yearsOfExperience.isNotEmpty
                   ? '${_profile!.yearsOfExperience} yrs'
                   : 'Not set',
               textStyle: const TextStyle(
@@ -451,7 +662,22 @@ class _ProfilePageState extends State<ProfilePage> {
 
           const SizedBox(height: 14),
 
-          // Preferred jobs
+          _SectionCard(
+            child: _EditableRow(
+              label: 'Description',
+              text: _profile!.description.isNotEmpty
+                  ? _profile!.description
+                  : 'Not set',
+              textStyle: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+              onEdit: _editDescription,
+            ),
+          ),
+
+          const SizedBox(height: 14),
+
           _SectionCard(
             child: InkWell(
               onTap: _openPreferredJobs,
@@ -471,17 +697,22 @@ class _ProfilePageState extends State<ProfilePage> {
                           'Preferred jobs',
                           style: TextStyle(
                             fontSize: 15,
-                            fontWeight: FontWeight.w600,
+                            fontWeight:
+                                FontWeight.w600,
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          _profile!.preferredJobs.isEmpty
+                          _profile!
+                                  .preferredJobs
+                                  .isEmpty
                               ? 'None selected'
                               : '${_profile!.preferredJobs.length} selected',
-                          style: const TextStyle(
+                          style:
+                              const TextStyle(
                             fontSize: 13,
-                            color: AppColors.mutedText,
+                            color:
+                                AppColors.mutedText,
                           ),
                         ),
                       ],
@@ -504,14 +735,12 @@ class _ProfilePageState extends State<ProfilePage> {
     ImageProvider? imageProvider;
 
     if (_localPhotoBytes != null) {
-      imageProvider = MemoryImage(
-        _localPhotoBytes!,
-      );
+      imageProvider =
+          MemoryImage(_localPhotoBytes!);
     } else if (_profile?.profilePhotoUrl != null &&
         _profile!.profilePhotoUrl!.isNotEmpty) {
-      imageProvider = NetworkImage(
-        _profile!.profilePhotoUrl!,
-      );
+      imageProvider =
+          NetworkImage(_profile!.profilePhotoUrl!);
     }
 
     return Stack(
@@ -523,11 +752,13 @@ class _ProfilePageState extends State<ProfilePage> {
           child: imageProvider == null
               ? Text(
                   _profile!.name.isNotEmpty
-                      ? _profile!.name[0].toUpperCase()
+                      ? _profile!.name[0]
+                          .toUpperCase()
                       : '?',
                   style: const TextStyle(
                     fontSize: 36,
-                    fontWeight: FontWeight.w700,
+                    fontWeight:
+                        FontWeight.w700,
                     color: AppColors.navy,
                   ),
                 )
@@ -538,11 +769,13 @@ class _ProfilePageState extends State<ProfilePage> {
           const Positioned.fill(
             child: CircleAvatar(
               radius: 55,
-              backgroundColor: Colors.black38,
+              backgroundColor:
+                  Colors.black38,
               child: SizedBox(
                 height: 24,
                 width: 24,
-                child: CircularProgressIndicator(
+                child:
+                    CircularProgressIndicator(
                   strokeWidth: 2,
                   color: Colors.white,
                 ),
@@ -557,10 +790,13 @@ class _ProfilePageState extends State<ProfilePage> {
             onTap: _isUploadingPhoto
                 ? null
                 : _pickProfilePhoto,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius:
+                BorderRadius.circular(20),
             child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
+              padding:
+                  const EdgeInsets.all(8),
+              decoration:
+                  BoxDecoration(
                 color: AppColors.navy,
                 shape: BoxShape.circle,
                 border: Border.all(
@@ -598,7 +834,8 @@ class _SectionCard extends StatelessWidget {
         border: Border.all(
           color: AppColors.border,
         ),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius:
+            BorderRadius.circular(14),
       ),
       child: child,
     );
@@ -621,8 +858,9 @@ class _EditableRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisSize:
-          label == null ? MainAxisSize.min : MainAxisSize.max,
+      mainAxisSize: label == null
+          ? MainAxisSize.min
+          : MainAxisSize.max,
       children: [
         if (label == null)
           Text(
@@ -639,7 +877,8 @@ class _EditableRow extends StatelessWidget {
                   label!,
                   style: const TextStyle(
                     fontSize: 12,
-                    color: AppColors.mutedText,
+                    color:
+                        AppColors.mutedText,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -655,7 +894,8 @@ class _EditableRow extends StatelessWidget {
 
         InkWell(
           onTap: onEdit,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius:
+              BorderRadius.circular(16),
           child: const Padding(
             padding: EdgeInsets.all(4),
             child: Icon(
