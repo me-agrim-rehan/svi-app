@@ -202,5 +202,47 @@ class JobsService {
       return [];
     }
   }
+
+  // ==========================================================================
+  // FETCH JOB DETAIL
+  // ==========================================================================
+  //
+  // 🚧 DB INTEGRATION POINT 🚧
+  // DB TEAM: called when the user taps a job card. PLACEHOLDER route below
+  // — confirm the real path (guessing /jobs/{id}) and adjust if different.
+  // Expected response: a single job object, same shape as the items inside
+  // "jobs" from fetchRecommendedJobs (parsed by Job.fromJson).
+  // ==========================================================================
+
+  Future<Job?> fetchJobDetail({required String jobId}) async {
+    try {
+      final uri = Uri.parse("${ApiConstants.baseUrl}/jobs/$jobId");
+
+      developer.log("=== fetchJobDetail() ===");
+      developer.log("Request: $uri");
+
+      final response = await http.get(uri);
+
+      developer.log("Status: ${response.statusCode}");
+      developer.log("Response: ${response.body}");
+
+      if (response.statusCode != 200) {
+        developer.log("fetchJobDetail failed: ${response.statusCode}");
+        return null;
+      }
+
+      final data = jsonDecode(response.body);
+
+      // Handles both a bare job object and one wrapped as {"job": {...}}.
+      final jobJson = data is Map<String, dynamic> && data.containsKey('job')
+          ? data['job']
+          : data;
+
+      return Job.fromJson(jobJson);
+    } catch (e, s) {
+      developer.log("fetchJobDetail Exception: $e", stackTrace: s);
+      return null;
+    }
+  }
 }
 
