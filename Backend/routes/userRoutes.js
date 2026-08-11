@@ -112,11 +112,26 @@ router.get("/profile", async (req, res) => {
 });
 
 // PATCH /users/profile
+// PATCH /users/profile
 router.patch("/profile", async (req, res) => {
   const client = await pool.connect();
 
   try {
-    const { phone, preferred_jobs } = req.body;
+    const {
+      phone,
+      name,
+      address,
+      city,
+      state,
+      occupation,
+      years_of_experience,
+      description,
+      preferred_jobs,
+    } = req.body;
+
+    // ========================================
+    // VALIDATE PHONE
+    // ========================================
 
     if (!phone) {
       return res.status(400).json({
@@ -134,40 +149,10 @@ router.patch("/profile", async (req, res) => {
       });
     }
 
-    if (!Array.isArray(preferred_jobs)) {
-      return res.status(400).json({
-        success: false,
-        message: "preferred_jobs must be an array",
-      });
-    }
+    // ========================================
+    // FIND USER
+    // ========================================
 
-    // Convert IDs to numbers
-    const parsedPreferredJobs = preferred_jobs.map((jobId) => Number(jobId));
-
-    // Make sure every ID is a valid integer
-    const invalidJobIds = parsedPreferredJobs.some(
-      (jobId) => !Number.isInteger(jobId),
-    );
-
-    if (invalidJobIds) {
-      return res.status(400).json({
-        success: false,
-        message: "Preferred job IDs must be integers",
-      });
-    }
-
-    // Remove duplicate IDs
-    const uniquePreferredJobs = [...new Set(parsedPreferredJobs)];
-
-    // Optional safety limit
-    if (uniquePreferredJobs.length > 10) {
-      return res.status(400).json({
-        success: false,
-        message: "You can select up to 10 preferred jobs",
-      });
-    }
-
-    // Verify user exists
     const userResult = await client.query(
       `
         SELECT id
@@ -187,41 +172,172 @@ router.patch("/profile", async (req, res) => {
 
     const userId = userResult.rows[0].id;
 
+    // ========================================
+    // START TRANSACTION
+    // ========================================
+
     await client.query("BEGIN");
 
-    // Remove existing preferred jobs
-    await client.query(
-      `
-        DELETE FROM public.user_preferred_jobs
-        WHERE user_id = $1
-      `,
-      [userId],
-    );
+    // ========================================
+    // UPDATE USER TABLE
+    // ========================================
+    // Currently only name belongs to users table.
 
-    // Insert new preferred jobs
-    for (const jobSubcategoryId of uniquePreferredJobs) {
+    if (name !== undefined) {
       await client.query(
         `
-          INSERT INTO public.user_preferred_jobs
-          (
-            user_id,
-            job_subcategory_id
-          )
-          VALUES
-          ($1, $2)
+          UPDATE public.users
+          SET name = $1
+          WHERE id = $2
         `,
-        [userId, jobSubcategoryId],
+        [name, userId],
       );
     }
 
+    // ========================================
+    // UPDATE USER DETAILS
+    // ========================================
+
+    const updates = [];
+    const values = [];
+
+    if (address !== undefined) {
+      updates.push(`address = $${values.length + 1}`);
+      values.push(address);
+    }
+
+    if (city !== undefined) {
+      updates.push(`city = $${values.length + 1}`);
+      values.push(city);
+    }
+
+    if (state !== undefined) {
+      updates.push(`state = $${values.length + 1}`);
+      values.push(state);
+    }
+
+    if (occupation !== undefined) {
+      updates.push(`occupation = $${values.length + 1}`);
+      values.push(occupation);
+    }
+
+    if (years_of_experience !== undefined) {
+      updates.push(`years_of_experience = $${values.length + 1}`);
+      values.push(years_of_experience);
+    }
+
+    if (description !== undefined) {
+      updates.push(`description = $${values.length + 1}`);
+      values.push(description);
+    }
+
+    if (updates.length > 0) {
+      values.push(userId);
+
+      await client.query(
+        `
+          UPDATE public.user_details
+          SET ${updates.join(", ")},
+              updated_at = NOW()
+          WHERE user_id = $${values.length}
+        `,
+        values,
+      );
+    }
+
+    // ========================================
+    // UPDATE PREFERRED JOBS
+    // ========================================
+
+    if (preferred_jobs !== undefined) {
+      if (!Array.isArray(preferred_jobs)) {
+        await client.query("ROLLBACK");
+
+        return res.status(400).json({
+          success: false,
+          message: "preferred_jobs must be an array",
+        });
+      }
+
+      // Convert IDs to numbers
+      const parsedPreferredJobs = preferred_jobs.map((jobId) => Number(jobId));
+
+      // Validate IDs
+      const invalidJobIds = parsedPreferredJobs.some(
+        (jobId) => !Number.isInteger(jobId),
+      );
+
+      if (invalidJobIds) {
+        await client.query("ROLLBACK");
+
+        return res.status(400).json({
+          success: false,
+          message: "Preferred job IDs must be integers",
+        });
+      }
+
+      // Remove duplicates
+      const uniquePreferredJobs = [...new Set(parsedPreferredJobs)];
+
+      // Maximum 10
+      if (uniquePreferredJobs.length > 10) {
+        await client.query("ROLLBACK");
+
+        return res.status(400).json({
+          success: false,
+          message: "You can select up to 10 preferred jobs",
+        });
+      }
+
+      // Remove existing preferred jobs
+      await client.query(
+        `
+          DELETE FROM public.user_preferred_jobs
+          WHERE user_id = $1
+        `,
+        [userId],
+      );
+
+      // Insert new preferred jobs
+      for (const jobSubcategoryId of uniquePreferredJobs) {
+        await client.query(
+          `
+            INSERT INTO public.user_preferred_jobs
+            (
+              user_id,
+              job_subcategory_id
+            )
+            VALUES
+            ($1, $2)
+          `,
+          [userId, jobSubcategoryId],
+        );
+      }
+
+      console.log("[PROFILE] Updated preferred jobs:", uniquePreferredJobs);
+    }
+
+    // ========================================
+    // COMMIT
+    // ========================================
+
     await client.query("COMMIT");
 
-    console.log("[PROFILE] Updated preferred jobs:", uniquePreferredJobs);
+    console.log("[PROFILE] Profile updated:", {
+      userId,
+      name,
+      address,
+      city,
+      state,
+      occupation,
+      years_of_experience,
+      description,
+      preferred_jobs,
+    });
 
     return res.status(200).json({
       success: true,
-      message: "Preferred jobs updated successfully",
-      preferred_jobs: uniquePreferredJobs.map(String),
+      message: "Profile updated successfully",
     });
   } catch (error) {
     await client.query("ROLLBACK");
@@ -230,7 +346,7 @@ router.patch("/profile", async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: "Failed to update preferred jobs",
+      message: "Failed to update profile",
     });
   } finally {
     client.release();
