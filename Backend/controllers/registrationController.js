@@ -22,10 +22,27 @@ export async function createAccount(req, res) {
     city,
     state,
     occupation,
+    yearsOfExperience,
     description,
     aadhaarNumber,
     preferredJobs,
   } = req.body;
+
+  // Validate years of experience
+  const validExperienceRanges = [
+    "Less than 1 Year",
+    "1-3 Years",
+    "3-6 Years",
+    "6-10 Years",
+    "10+ Years",
+  ];
+
+  if (!validExperienceRanges.includes(yearsOfExperience)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid years of experience",
+    });
+  }
 
   let cleanPhone = phone?.replace(/\D/g, "");
   const cleanAadhaar = aadhaarNumber?.replace(/\D/g, "");
@@ -40,6 +57,7 @@ export async function createAccount(req, res) {
   console.log("Clean phone:", cleanPhone);
   console.log("Raw Aadhaar:", aadhaarNumber);
   console.log("Clean Aadhaar:", cleanAadhaar);
+  console.log("Years of experience:", yearsOfExperience);
   console.log("Preferred jobs:", preferredJobs);
 
   // Validate phone
@@ -85,7 +103,7 @@ export async function createAccount(req, res) {
 
   // Make sure all IDs are integers
   const invalidJobIds = parsedPreferredJobs.some(
-    (jobId) => !Number.isInteger(Number(jobId))
+    (jobId) => !Number.isInteger(Number(jobId)),
   );
 
   if (invalidJobIds) {
@@ -122,7 +140,7 @@ export async function createAccount(req, res) {
         ($1, $2, true)
         RETURNING id
       `,
-      [name, cleanPhone]
+      [name, cleanPhone],
     );
 
     const userId = userResult.rows[0].id;
@@ -137,13 +155,14 @@ export async function createAccount(req, res) {
           city,
           state,
           occupation,
+          years_of_experience,
           description,
           aadhaar_number,
           aadhaar_photo_url,
           live_photo_url
         )
         VALUES
-        ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       `,
       [
         userId,
@@ -151,11 +170,12 @@ export async function createAccount(req, res) {
         city,
         state,
         occupation,
+        yearsOfExperience,
         description,
         cleanAadhaar,
         aadhaarPhotoUrl,
         livePhotoUrl,
-      ]
+      ],
     );
 
     // Insert preferred jobs
@@ -170,7 +190,7 @@ export async function createAccount(req, res) {
           VALUES
           ($1, $2)
         `,
-        [userId, Number(jobSubcategoryId)]
+        [userId, Number(jobSubcategoryId)],
       );
     }
 

@@ -78,16 +78,11 @@ class RegistrationService {
 
       final streamedResponse = await request.send();
 
-      final response = await http.Response.fromStream(
-        streamedResponse,
-      );
+      final response = await http.Response.fromStream(streamedResponse);
 
-      developer.log(
-        "Status: ${response.statusCode}, Body: ${response.body}",
-      );
+      developer.log("Status: ${response.statusCode}, Body: ${response.body}");
 
-      if (response.statusCode >= 200 &&
-          response.statusCode < 300) {
+      if (response.statusCode >= 200 && response.statusCode < 300) {
         try {
           final data = jsonDecode(response.body);
 
@@ -96,24 +91,52 @@ class RegistrationService {
             return true;
           }
         } catch (e) {
-          developer.log(
-            "Could not parse response JSON: $e",
-          );
+          developer.log("Could not parse response JSON: $e");
         }
       }
 
       return false;
     } catch (e, stackTrace) {
-      developer.log(
-        "createAccount Exception: $e",
-        stackTrace: stackTrace,
-      );
+      developer.log("createAccount Exception: $e", stackTrace: stackTrace);
 
       if (kDebugMode) {
         print("Registration error: $e");
       }
 
       return false;
+    }
+  }
+
+  Future<List<String>> getExperienceRanges() async {
+    try {
+      final uri = Uri.parse("${ApiConstants.baseUrl}/experience-ranges");
+
+      developer.log("Fetching experience ranges...");
+      developer.log("Request URI: $uri");
+
+      final response = await http.get(uri);
+
+      developer.log("Experience ranges status: ${response.statusCode}");
+
+      developer.log("Experience ranges response: ${response.body}");
+
+      if (response.statusCode != 200) {
+        return [];
+      }
+
+      final data = jsonDecode(response.body);
+
+      if (data["success"] != true) {
+        return [];
+      }
+
+      final List<dynamic> ranges = data["data"];
+
+      return ranges.map<String>((item) => item["label"].toString()).toList();
+    } catch (e, stackTrace) {
+      developer.log("getExperienceRanges error: $e", stackTrace: stackTrace);
+
+      return [];
     }
   }
 }

@@ -36,15 +36,22 @@ router.get("/profile", async (req, res) => {
 
     const result = await pool.query(
       `
-        SELECT
-          u.id AS user_id,
-          ud.occupation
-        FROM public.users u
-        INNER JOIN public.user_details ud
-          ON ud.user_id = u.id
-        WHERE u.mobile = $1
-        LIMIT 1
-      `,
+    SELECT
+      u.id AS user_id,
+      u.mobile AS phone,
+      u.name,
+      ud.address,
+      ud.city,
+      ud.state,
+      ud.occupation,
+      ud.description,
+      ud.live_photo_url
+    FROM public.users u
+    INNER JOIN public.user_details ud
+      ON ud.user_id = u.id
+    WHERE u.mobile = $1
+    LIMIT 1
+  `,
       [cleanPhone],
     );
 
@@ -58,21 +65,22 @@ router.get("/profile", async (req, res) => {
     const user = result.rows[0];
 
     console.log("[PROFILE] User ID:", user.user_id);
+    console.log("[PROFILE] Name:", user.name);
     console.log("[PROFILE] Occupation:", user.occupation);
 
     // Get user's preferred job subcategory IDs
     const preferredJobsResult = await pool.query(
       `
-        SELECT job_subcategory_id
-        FROM public.user_preferred_jobs
-        WHERE user_id = $1
-        ORDER BY created_at
-      `,
+    SELECT job_subcategory_id
+    FROM public.user_preferred_jobs
+    WHERE user_id = $1
+    ORDER BY created_at
+  `,
       [user.user_id],
     );
 
-    const preferredJobs = preferredJobsResult.rows.map(
-      (row) => String(row.job_subcategory_id),
+    const preferredJobs = preferredJobsResult.rows.map((row) =>
+      String(row.job_subcategory_id),
     );
 
     console.log("[PROFILE] Preferred jobs:", preferredJobs);
@@ -80,8 +88,16 @@ router.get("/profile", async (req, res) => {
     return res.status(200).json({
       success: true,
       user_id: user.user_id,
+      phone: user.phone ?? "",
+      name: user.name ?? "",
+      address: user.address ?? "",
+      city: user.city ?? "",
+      state: user.state ?? "",
       occupation_category: user.occupation ?? "",
+      years_of_experience: "",
+      description: user.description ?? "",
       preferred_jobs: preferredJobs,
+      profile_photo_url: user.live_photo_url ?? "",
     });
   } catch (error) {
     console.error("[PROFILE] Error:", error);
@@ -124,9 +140,7 @@ router.patch("/profile", async (req, res) => {
     }
 
     // Convert IDs to numbers
-    const parsedPreferredJobs = preferred_jobs.map((jobId) =>
-      Number(jobId),
-    );
+    const parsedPreferredJobs = preferred_jobs.map((jobId) => Number(jobId));
 
     // Make sure every ID is a valid integer
     const invalidJobIds = parsedPreferredJobs.some(
@@ -200,10 +214,7 @@ router.patch("/profile", async (req, res) => {
 
     await client.query("COMMIT");
 
-    console.log(
-      "[PROFILE] Updated preferred jobs:",
-      uniquePreferredJobs,
-    );
+    console.log("[PROFILE] Updated preferred jobs:", uniquePreferredJobs);
 
     return res.status(200).json({
       success: true,

@@ -10,6 +10,7 @@ import loginRoutes from "./routes/loginRoutes.js";
 import postedJobRoutes from "./routes/postedJobRoutes.js";
 import recommendedJobRoutes from "./routes/recommendedJobRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import experienceRoutes from "./routes/experienceRoutes.js";
 
 dotenv.config();
 
@@ -33,6 +34,7 @@ app.use("/jobs", jobRoutes);
 app.use("/posted-jobs", postedJobRoutes);
 app.use("/recommended-jobs", recommendedJobRoutes);
 app.use("/users", userRoutes);
+app.use("/experience-ranges", experienceRoutes);
 
 pool.query("SELECT NOW()")
   .then((result) => {

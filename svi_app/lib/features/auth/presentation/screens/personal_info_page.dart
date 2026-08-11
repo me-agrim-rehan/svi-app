@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../services/registration_service.dart';
 import '../widgets/registration_text_field.dart';
 import '../widgets/occupation_autocomplete_field.dart';
 
-class PersonalInfoPage extends StatelessWidget {
+class PersonalInfoPage extends StatefulWidget {
   const PersonalInfoPage({
     super.key,
     required this.nameController,
@@ -25,6 +26,33 @@ class PersonalInfoPage extends StatelessWidget {
   final TextEditingController descriptionController;
 
   @override
+  State<PersonalInfoPage> createState() => _PersonalInfoPageState();
+}
+
+class _PersonalInfoPageState extends State<PersonalInfoPage> {
+  final RegistrationService registrationService = RegistrationService();
+
+  List<String> _experienceRanges = [];
+  bool _isLoadingExperience = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadExperienceRanges();
+  }
+
+  Future<void> _loadExperienceRanges() async {
+    final ranges = await registrationService.getExperienceRanges();
+
+    if (!mounted) return;
+
+    setState(() {
+      _experienceRanges = ranges;
+      _isLoadingExperience = false;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 22),
@@ -33,9 +61,14 @@ class PersonalInfoPage extends StatelessWidget {
         children: [
           const Text(
             'Personal information',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+            ),
           ),
+
           const SizedBox(height: 6),
+
           const Text(
             'Tell us a bit about yourself',
             style: TextStyle(
@@ -43,16 +76,17 @@ class PersonalInfoPage extends StatelessWidget {
               fontSize: 14,
             ),
           ),
+
           const SizedBox(height: 28),
 
           RegistrationTextField(
             label: 'Full name',
-            controller: nameController,
+            controller: widget.nameController,
           ),
 
           RegistrationTextField(
             label: 'Address',
-            controller: addressController,
+            controller: widget.addressController,
           ),
 
           Row(
@@ -61,36 +95,71 @@ class PersonalInfoPage extends StatelessWidget {
                 child: RegistrationTextField(
                   label: 'City',
                   hintText: 'Pune',
-                  controller: cityController,
+                  controller: widget.cityController,
                 ),
               ),
+
               const SizedBox(width: 12),
+
               Expanded(
                 child: RegistrationTextField(
                   label: 'State',
                   hintText: 'Maharashtra',
-                  controller: stateController,
+                  controller: widget.stateController,
                 ),
               ),
             ],
           ),
 
           OccupationAutocompleteField(
-            controller: occupationController,
+            controller: widget.occupationController,
           ),
 
-          RegistrationTextField(
-            label: 'Years of experience',
-            hintText: 'e.g. 5',
-            keyboardType: TextInputType.number,
-            controller: experienceController,
-          ),
+          // Years of experience
+          if (_isLoadingExperience)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                child: CircularProgressIndicator(),
+              ),
+            )
+          else if (_experienceRanges.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Text(
+                'Unable to load experience options',
+                style: TextStyle(
+                  color: AppColors.mutedText,
+                ),
+              ),
+            )
+          else
+            DropdownButtonFormField<String>(
+              value: widget.experienceController.text.isEmpty
+                  ? null
+                  : widget.experienceController.text,
+              decoration: InputDecoration(
+                labelText: 'Years of experience',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              items: _experienceRanges.map((range) {
+                return DropdownMenuItem<String>(
+                  value: range,
+                  child: Text(range),
+                );
+              }).toList(),
+              onChanged: (value) {
+                widget.experienceController.text = value ?? '';
+              },
+            ),
 
           RegistrationTextField(
             label: 'Description (optional)',
             hintText: 'Tools you own, shifts you prefer...',
             maxLines: 3,
-            controller: descriptionController,
+            controller: widget.descriptionController,
           ),
 
           const SizedBox(height: 12),
