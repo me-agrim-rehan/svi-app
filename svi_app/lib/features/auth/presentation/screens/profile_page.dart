@@ -10,10 +10,7 @@ import '../../../../services/profile_service.dart';
 import 'preferred_jobs_page.dart';
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({
-    super.key,
-    required this.phone,
-  });
+  const ProfilePage({super.key, required this.phone});
 
   final String phone;
 
@@ -40,9 +37,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _loadProfile() async {
     setState(() => _isLoading = true);
 
-    final profile = await _profileService.fetchProfile(
-      phone: widget.phone,
-    );
+    final profile = await _profileService.fetchProfile(phone: widget.phone);
 
     if (!mounted) return;
 
@@ -67,8 +62,7 @@ class _ProfilePageState extends State<ProfilePage> {
       _isUploadingPhoto = true;
     });
 
-    final newUrl =
-        await _profileService.updateProfilePhoto(
+    final newUrl = await _profileService.updateProfilePhoto(
       phone: widget.phone,
       photo: picked,
     );
@@ -79,17 +73,14 @@ class _ProfilePageState extends State<ProfilePage> {
       _isUploadingPhoto = false;
 
       if (newUrl != null) {
-        _profile =
-            _profile!.copyWith(profilePhotoUrl: newUrl);
+        _profile = _profile!.copyWith(profilePhotoUrl: newUrl);
       }
     });
 
     if (newUrl == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Failed to update photo. Please try again.',
-          ),
+          content: Text('Failed to update photo. Please try again.'),
         ),
       );
     }
@@ -103,8 +94,7 @@ class _ProfilePageState extends State<ProfilePage> {
     TextInputType keyboardType = TextInputType.text,
     int maxLines = 1,
   }) async {
-    final controller =
-        TextEditingController(text: currentValue);
+    final controller = TextEditingController(text: currentValue);
 
     final newValue = await showDialog<String>(
       context: context,
@@ -116,9 +106,7 @@ class _ProfilePageState extends State<ProfilePage> {
             autofocus: true,
             keyboardType: keyboardType,
             maxLines: maxLines,
-            decoration: InputDecoration(
-              hintText: hintText,
-            ),
+            decoration: InputDecoration(hintText: hintText),
           ),
           actions: [
             TextButton(
@@ -127,10 +115,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             TextButton(
               onPressed: () {
-                Navigator.pop(
-                  context,
-                  controller.text.trim(),
-                );
+                Navigator.pop(context, controller.text.trim());
               },
               child: const Text('Save'),
             ),
@@ -139,9 +124,7 @@ class _ProfilePageState extends State<ProfilePage> {
       },
     );
 
-    if (newValue == null ||
-        newValue.isEmpty ||
-        newValue == currentValue) {
+    if (newValue == null || newValue.isEmpty || newValue == currentValue) {
       return;
     }
 
@@ -151,11 +134,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
     if (!success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Failed to update $title. Please try again.',
-          ),
-        ),
+        SnackBar(content: Text('Failed to update $title. Please try again.')),
       );
     }
   }
@@ -168,16 +147,14 @@ class _ProfilePageState extends State<ProfilePage> {
       currentValue: _profile!.name,
       hintText: 'Full name',
       onSave: (value) async {
-        final success =
-            await _profileService.updateName(
+        final success = await _profileService.updateName(
           phone: widget.phone,
           name: value,
         );
 
         if (success && mounted) {
           setState(() {
-            _profile =
-                _profile!.copyWith(name: value);
+            _profile = _profile!.copyWith(name: value);
           });
         }
 
@@ -195,16 +172,14 @@ class _ProfilePageState extends State<ProfilePage> {
       hintText: 'Your address',
       maxLines: 3,
       onSave: (value) async {
-        final success =
-            await _profileService.updateAddress(
+        final success = await _profileService.updateAddress(
           phone: widget.phone,
           address: value,
         );
 
         if (success && mounted) {
           setState(() {
-            _profile =
-                _profile!.copyWith(address: value);
+            _profile = _profile!.copyWith(address: value);
           });
         }
 
@@ -221,16 +196,14 @@ class _ProfilePageState extends State<ProfilePage> {
       currentValue: _profile!.city,
       hintText: 'e.g. Pune',
       onSave: (value) async {
-        final success =
-            await _profileService.updateCity(
+        final success = await _profileService.updateCity(
           phone: widget.phone,
           city: value,
         );
 
         if (success && mounted) {
           setState(() {
-            _profile =
-                _profile!.copyWith(city: value);
+            _profile = _profile!.copyWith(city: value);
           });
         }
 
@@ -247,16 +220,14 @@ class _ProfilePageState extends State<ProfilePage> {
       currentValue: _profile!.state,
       hintText: 'e.g. Maharashtra',
       onSave: (value) async {
-        final success =
-            await _profileService.updateState(
+        final success = await _profileService.updateState(
           phone: widget.phone,
           state: value,
         );
 
         if (success && mounted) {
           setState(() {
-            _profile =
-                _profile!.copyWith(state: value);
+            _profile = _profile!.copyWith(state: value);
           });
         }
 
@@ -268,45 +239,29 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _editOccupation() async {
     if (_profile == null) return;
 
-    final controller =
-        TextEditingController(
-      text: _profile!.occupation,
-    );
+    final controller = TextEditingController(text: _profile!.occupation);
 
-    final newOccupation =
-        await showDialog<String>(
+    final newOccupation = await showDialog<String>(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: const Text('Edit occupation'),
           content: Autocomplete<String>(
-            initialValue: TextEditingValue(
-              text: _profile!.occupation,
-            ),
-            optionsBuilder:
-                (TextEditingValue value) {
+            initialValue: TextEditingValue(text: _profile!.occupation),
+            optionsBuilder: (TextEditingValue value) {
               if (value.text.trim().isEmpty) {
                 return const Iterable<String>.empty();
               }
 
-              return OccupationData.categoryTitles
-                  .where(
-                (option) => option
-                    .toLowerCase()
-                    .contains(
-                      value.text.toLowerCase(),
-                    ),
+              return OccupationData.categoryTitles.where(
+                (option) =>
+                    option.toLowerCase().contains(value.text.toLowerCase()),
               );
             },
             onSelected: (selection) {
               controller.text = selection;
             },
-            fieldViewBuilder: (
-              context,
-              textController,
-              focusNode,
-              onSubmit,
-            ) {
+            fieldViewBuilder: (context, textController, focusNode, onSubmit) {
               return TextField(
                 controller: textController,
                 focusNode: focusNode,
@@ -314,26 +269,19 @@ class _ProfilePageState extends State<ProfilePage> {
                 onChanged: (value) {
                   controller.text = value;
                 },
-                decoration:
-                    const InputDecoration(
-                  hintText:
-                      'e.g. Mason, Electrician...',
+                decoration: const InputDecoration(
+                  hintText: 'e.g. Mason, Electrician...',
                 ),
               );
             },
           ),
           actions: [
             TextButton(
-              onPressed: () =>
-                  Navigator.pop(context),
+              onPressed: () => Navigator.pop(context),
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () =>
-                  Navigator.pop(
-                context,
-                controller.text.trim(),
-              ),
+              onPressed: () => Navigator.pop(context, controller.text.trim()),
               child: const Text('Save'),
             ),
           ],
@@ -347,8 +295,7 @@ class _ProfilePageState extends State<ProfilePage> {
       return;
     }
 
-    final success =
-        await _profileService.updateOccupation(
+    final success = await _profileService.updateOccupation(
       phone: widget.phone,
       occupation: newOccupation,
     );
@@ -357,17 +304,12 @@ class _ProfilePageState extends State<ProfilePage> {
 
     if (success) {
       setState(() {
-        _profile =
-            _profile!.copyWith(
-          occupation: newOccupation,
-        );
+        _profile = _profile!.copyWith(occupation: newOccupation);
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Failed to update occupation. Please try again.',
-          ),
+          content: Text('Failed to update occupation. Please try again.'),
         ),
       );
     }
@@ -378,24 +320,18 @@ class _ProfilePageState extends State<ProfilePage> {
 
     await _editTextField(
       title: 'Edit years of experience',
-      currentValue:
-          _profile!.yearsOfExperience,
+      currentValue: _profile!.yearsOfExperience,
       hintText: 'e.g. 5',
       keyboardType: TextInputType.number,
       onSave: (value) async {
-        final success =
-            await _profileService
-                .updateYearsOfExperience(
+        final success = await _profileService.updateYearsOfExperience(
           phone: widget.phone,
           yearsOfExperience: value,
         );
 
         if (success && mounted) {
           setState(() {
-            _profile =
-                _profile!.copyWith(
-              yearsOfExperience: value,
-            );
+            _profile = _profile!.copyWith(yearsOfExperience: value);
           });
         }
 
@@ -407,12 +343,9 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _editDescription() async {
     if (_profile == null) return;
 
-    final controller = TextEditingController(
-      text: _profile!.description,
-    );
+    final controller = TextEditingController(text: _profile!.description);
 
-    final newDescription =
-        await showDialog<String>(
+    final newDescription = await showDialog<String>(
       context: context,
       builder: (context) {
         return AlertDialog(
@@ -422,22 +355,16 @@ class _ProfilePageState extends State<ProfilePage> {
             autofocus: true,
             maxLines: 5,
             decoration: const InputDecoration(
-              hintText:
-                  'Tools you own, shifts you prefer...',
+              hintText: 'Tools you own, shifts you prefer...',
             ),
           ),
           actions: [
             TextButton(
-              onPressed: () =>
-                  Navigator.pop(context),
+              onPressed: () => Navigator.pop(context),
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () =>
-                  Navigator.pop(
-                context,
-                controller.text.trim(),
-              ),
+              onPressed: () => Navigator.pop(context, controller.text.trim()),
               child: const Text('Save'),
             ),
           ],
@@ -445,13 +372,11 @@ class _ProfilePageState extends State<ProfilePage> {
       },
     );
 
-    if (newDescription == null ||
-        newDescription == _profile!.description) {
+    if (newDescription == null || newDescription == _profile!.description) {
       return;
     }
 
-    final success =
-        await _profileService.updateDescription(
+    final success = await _profileService.updateDescription(
       phone: widget.phone,
       description: newDescription,
     );
@@ -460,17 +385,12 @@ class _ProfilePageState extends State<ProfilePage> {
 
     if (success) {
       setState(() {
-        _profile =
-            _profile!.copyWith(
-          description: newDescription,
-        );
+        _profile = _profile!.copyWith(description: newDescription);
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Failed to update description. Please try again.',
-          ),
+          content: Text('Failed to update description. Please try again.'),
         ),
       );
     }
@@ -479,36 +399,48 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _openPreferredJobs() async {
     if (_profile == null) return;
 
-    final updated =
-        await Navigator.push<List<String>>(
+    final updated = await Navigator.push<List<String>>(
       context,
       MaterialPageRoute(
         builder: (_) => PreferredJobsPage(
-          phone: widget.phone,
-          selectedJobs:
-              _profile!.preferredJobs,
-          standalone: true,
+          selectedJobs: _profile!.preferredJobs,
           maxSelections: 10,
+          showSaveButton: true,
         ),
       ),
     );
 
-    if (updated != null && mounted) {
+    if (updated == null || !mounted) return;
+
+    // Save the new preferred jobs to the backend.
+    final success = await _profileService.updatePreferredJobs(
+      phone: widget.phone,
+      preferredJobs: updated,
+    );
+
+    if (!mounted) return;
+
+    if (success) {
       setState(() {
-        _profile =
-            _profile!.copyWith(
-          preferredJobs: updated,
-        );
+        _profile = _profile!.copyWith(preferredJobs: updated);
       });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Preferred jobs updated successfully.')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to update preferred jobs. Please try again.'),
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (_profile == null) {
@@ -516,9 +448,7 @@ class _ProfilePageState extends State<ProfilePage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              "Couldn't load your profile.",
-            ),
+            const Text("Couldn't load your profile."),
             const SizedBox(height: 12),
             OutlinedButton(
               onPressed: _loadProfile,
@@ -532,16 +462,9 @@ class _ProfilePageState extends State<ProfilePage> {
     return RefreshIndicator(
       onRefresh: _loadProfile,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(
-          22,
-          24,
-          22,
-          22,
-        ),
+        padding: const EdgeInsets.fromLTRB(22, 24, 22, 22),
         children: [
-          Center(
-            child: _buildAvatar(),
-          ),
+          Center(child: _buildAvatar()),
 
           const SizedBox(height: 16),
 
@@ -564,10 +487,7 @@ class _ProfilePageState extends State<ProfilePage> {
           Center(
             child: Text(
               _profile!.phone,
-              style: const TextStyle(
-                color: AppColors.mutedText,
-                fontSize: 13,
-              ),
+              style: const TextStyle(color: AppColors.mutedText, fontSize: 13),
             ),
           ),
 
@@ -598,11 +518,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     text: _profile!.city.isNotEmpty
                         ? _profile!.city
                         : 'Not set',
-                    textStyle:
-                        const TextStyle(
+                    textStyle: const TextStyle(
                       fontSize: 15,
-                      fontWeight:
-                          FontWeight.w600,
+                      fontWeight: FontWeight.w600,
                     ),
                     onEdit: _editCity,
                   ),
@@ -614,11 +532,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     text: _profile!.state.isNotEmpty
                         ? _profile!.state
                         : 'Not set',
-                    textStyle:
-                        const TextStyle(
+                    textStyle: const TextStyle(
                       fontSize: 15,
-                      fontWeight:
-                          FontWeight.w600,
+                      fontWeight: FontWeight.w600,
                     ),
                     onEdit: _editState,
                   ),
@@ -648,8 +564,7 @@ class _ProfilePageState extends State<ProfilePage> {
           _SectionCard(
             child: _EditableRow(
               label: 'Years of experience',
-              text: _profile!
-                      .yearsOfExperience.isNotEmpty
+              text: _profile!.yearsOfExperience.isNotEmpty
                   ? '${_profile!.yearsOfExperience} yrs'
                   : 'Not set',
               textStyle: const TextStyle(
@@ -683,45 +598,33 @@ class _ProfilePageState extends State<ProfilePage> {
               onTap: _openPreferredJobs,
               child: Row(
                 children: [
-                  const Icon(
-                    Icons.work_outline,
-                    color: AppColors.navy,
-                  ),
+                  const Icon(Icons.work_outline, color: AppColors.navy),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
-                      crossAxisAlignment:
-                          CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
                           'Preferred jobs',
                           style: TextStyle(
                             fontSize: 15,
-                            fontWeight:
-                                FontWeight.w600,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          _profile!
-                                  .preferredJobs
-                                  .isEmpty
+                          _profile!.preferredJobs.isEmpty
                               ? 'None selected'
                               : '${_profile!.preferredJobs.length} selected',
-                          style:
-                              const TextStyle(
+                          style: const TextStyle(
                             fontSize: 13,
-                            color:
-                                AppColors.mutedText,
+                            color: AppColors.mutedText,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const Icon(
-                    Icons.chevron_right,
-                    color: AppColors.mutedText,
-                  ),
+                  const Icon(Icons.chevron_right, color: AppColors.mutedText),
                 ],
               ),
             ),
@@ -735,12 +638,10 @@ class _ProfilePageState extends State<ProfilePage> {
     ImageProvider? imageProvider;
 
     if (_localPhotoBytes != null) {
-      imageProvider =
-          MemoryImage(_localPhotoBytes!);
+      imageProvider = MemoryImage(_localPhotoBytes!);
     } else if (_profile?.profilePhotoUrl != null &&
         _profile!.profilePhotoUrl!.isNotEmpty) {
-      imageProvider =
-          NetworkImage(_profile!.profilePhotoUrl!);
+      imageProvider = NetworkImage(_profile!.profilePhotoUrl!);
     }
 
     return Stack(
@@ -752,13 +653,11 @@ class _ProfilePageState extends State<ProfilePage> {
           child: imageProvider == null
               ? Text(
                   _profile!.name.isNotEmpty
-                      ? _profile!.name[0]
-                          .toUpperCase()
+                      ? _profile!.name[0].toUpperCase()
                       : '?',
                   style: const TextStyle(
                     fontSize: 36,
-                    fontWeight:
-                        FontWeight.w700,
+                    fontWeight: FontWeight.w700,
                     color: AppColors.navy,
                   ),
                 )
@@ -769,13 +668,11 @@ class _ProfilePageState extends State<ProfilePage> {
           const Positioned.fill(
             child: CircleAvatar(
               radius: 55,
-              backgroundColor:
-                  Colors.black38,
+              backgroundColor: Colors.black38,
               child: SizedBox(
                 height: 24,
                 width: 24,
-                child:
-                    CircularProgressIndicator(
+                child: CircularProgressIndicator(
                   strokeWidth: 2,
                   color: Colors.white,
                 ),
@@ -787,28 +684,16 @@ class _ProfilePageState extends State<ProfilePage> {
           bottom: 0,
           right: 0,
           child: InkWell(
-            onTap: _isUploadingPhoto
-                ? null
-                : _pickProfilePhoto,
-            borderRadius:
-                BorderRadius.circular(20),
+            onTap: _isUploadingPhoto ? null : _pickProfilePhoto,
+            borderRadius: BorderRadius.circular(20),
             child: Container(
-              padding:
-                  const EdgeInsets.all(8),
-              decoration:
-                  BoxDecoration(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
                 color: AppColors.navy,
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: Colors.white,
-                  width: 2,
-                ),
+                border: Border.all(color: Colors.white, width: 2),
               ),
-              child: const Icon(
-                Icons.edit,
-                size: 16,
-                color: Colors.white,
-              ),
+              child: const Icon(Icons.edit, size: 16, color: Colors.white),
             ),
           ),
         ),
@@ -818,9 +703,7 @@ class _ProfilePageState extends State<ProfilePage> {
 }
 
 class _SectionCard extends StatelessWidget {
-  const _SectionCard({
-    required this.child,
-  });
+  const _SectionCard({required this.child});
 
   final Widget child;
 
@@ -831,11 +714,8 @@ class _SectionCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(
-          color: AppColors.border,
-        ),
-        borderRadius:
-            BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: child,
     );
@@ -858,34 +738,24 @@ class _EditableRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisSize: label == null
-          ? MainAxisSize.min
-          : MainAxisSize.max,
+      mainAxisSize: label == null ? MainAxisSize.min : MainAxisSize.max,
       children: [
         if (label == null)
-          Text(
-            text,
-            style: textStyle,
-          )
+          Text(text, style: textStyle)
         else
           Expanded(
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   label!,
                   style: const TextStyle(
                     fontSize: 12,
-                    color:
-                        AppColors.mutedText,
+                    color: AppColors.mutedText,
                   ),
                 ),
                 const SizedBox(height: 2),
-                Text(
-                  text,
-                  style: textStyle,
-                ),
+                Text(text, style: textStyle),
               ],
             ),
           ),
@@ -894,15 +764,10 @@ class _EditableRow extends StatelessWidget {
 
         InkWell(
           onTap: onEdit,
-          borderRadius:
-              BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16),
           child: const Padding(
             padding: EdgeInsets.all(4),
-            child: Icon(
-              Icons.edit,
-              size: 16,
-              color: AppColors.mutedText,
-            ),
+            child: Icon(Icons.edit, size: 16, color: AppColors.mutedText),
           ),
         ),
       ],
