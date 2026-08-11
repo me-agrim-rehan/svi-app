@@ -260,7 +260,9 @@ router.patch("/profile", async (req, res) => {
       }
 
       // Convert IDs to numbers
-      const parsedPreferredJobs = preferred_jobs.map((jobId) => Number(jobId));
+      const parsedPreferredJobs = preferred_jobs.map((jobId) =>
+        Number(jobId),
+      );
 
       // Validate IDs
       const invalidJobIds = parsedPreferredJobs.some(
@@ -314,7 +316,10 @@ router.patch("/profile", async (req, res) => {
         );
       }
 
-      console.log("[PROFILE] Updated preferred jobs:", uniquePreferredJobs);
+      console.log(
+        "[PROFILE] Updated preferred jobs:",
+        uniquePreferredJobs,
+      );
     }
 
     // ========================================
@@ -339,6 +344,7 @@ router.patch("/profile", async (req, res) => {
       success: true,
       message: "Profile updated successfully",
     });
+
   } catch (error) {
     await client.query("ROLLBACK");
 
@@ -348,6 +354,7 @@ router.patch("/profile", async (req, res) => {
       success: false,
       message: "Failed to update profile",
     });
+
   } finally {
     client.release();
   }

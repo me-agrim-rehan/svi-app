@@ -239,40 +239,44 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _editOccupation() async {
     if (_profile == null) return;
 
-    final controller = TextEditingController(text: _profile!.occupation);
+    // Load occupations from backend if they haven't been loaded yet.
+    await OccupationData.load();
+
+    if (!mounted) return;
+
+    final occupations = OccupationData.categoryTitles;
+
+    if (occupations.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not load occupations.')),
+      );
+      return;
+    }
+
+    String? selectedOccupation = _profile!.occupation;
 
     final newOccupation = await showDialog<String>(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: const Text('Edit occupation'),
-          content: Autocomplete<String>(
-            initialValue: TextEditingValue(text: _profile!.occupation),
-            optionsBuilder: (TextEditingValue value) {
-              if (value.text.trim().isEmpty) {
-                return const Iterable<String>.empty();
-              }
-
-              return OccupationData.categoryTitles.where(
-                (option) =>
-                    option.toLowerCase().contains(value.text.toLowerCase()),
+          content: DropdownButtonFormField<String>(
+            value: occupations.contains(selectedOccupation)
+                ? selectedOccupation
+                : null,
+            isExpanded: true,
+            decoration: const InputDecoration(
+              labelText: 'Occupation',
+              border: OutlineInputBorder(),
+            ),
+            items: occupations.map((occupation) {
+              return DropdownMenuItem<String>(
+                value: occupation,
+                child: Text(occupation),
               );
-            },
-            onSelected: (selection) {
-              controller.text = selection;
-            },
-            fieldViewBuilder: (context, textController, focusNode, onSubmit) {
-              return TextField(
-                controller: textController,
-                focusNode: focusNode,
-                autofocus: true,
-                onChanged: (value) {
-                  controller.text = value;
-                },
-                decoration: const InputDecoration(
-                  hintText: 'e.g. Mason, Electrician...',
-                ),
-              );
+            }).toList(),
+            onChanged: (value) {
+              selectedOccupation = value;
             },
           ),
           actions: [
@@ -281,7 +285,11 @@ class _ProfilePageState extends State<ProfilePage> {
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () => Navigator.pop(context, controller.text.trim()),
+              onPressed: () {
+                if (selectedOccupation != null) {
+                  Navigator.pop(context, selectedOccupation);
+                }
+              },
               child: const Text('Save'),
             ),
           ],
@@ -318,26 +326,85 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _editExperience() async {
     if (_profile == null) return;
 
-    await _editTextField(
-      title: 'Edit years of experience',
-      currentValue: _profile!.yearsOfExperience,
-      hintText: 'e.g. 5',
-      keyboardType: TextInputType.number,
-      onSave: (value) async {
-        final success = await _profileService.updateYearsOfExperience(
-          phone: widget.phone,
-          yearsOfExperience: value,
+    const experienceRanges = [
+      'Less than 1 Year',
+      '1-3 Years',
+      '3-6 Years',
+      '6-10 Years',
+      '10+ Years',
+    ];
+
+    String? selectedExperience = _profile!.yearsOfExperience;
+
+    final newExperience = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Edit years of experience'),
+          content: DropdownButtonFormField<String>(
+            value: experienceRanges.contains(selectedExperience)
+                ? selectedExperience
+                : null,
+            isExpanded: true,
+            decoration: const InputDecoration(
+              labelText: 'Years of experience',
+              border: OutlineInputBorder(),
+            ),
+            items: experienceRanges.map((experience) {
+              return DropdownMenuItem<String>(
+                value: experience,
+                child: Text(experience),
+              );
+            }).toList(),
+            onChanged: (value) {
+              selectedExperience = value;
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                if (selectedExperience != null &&
+                    selectedExperience!.isNotEmpty) {
+                  Navigator.pop(context, selectedExperience);
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
         );
-
-        if (success && mounted) {
-          setState(() {
-            _profile = _profile!.copyWith(yearsOfExperience: value);
-          });
-        }
-
-        return success;
       },
     );
+
+    if (newExperience == null ||
+        newExperience.isEmpty ||
+        newExperience == _profile!.yearsOfExperience) {
+      return;
+    }
+
+    final success = await _profileService.updateYearsOfExperience(
+      phone: widget.phone,
+      yearsOfExperience: newExperience,
+    );
+
+    if (!mounted) return;
+
+    if (success) {
+      setState(() {
+        _profile = _profile!.copyWith(yearsOfExperience: newExperience);
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Failed to update years of experience. Please try again.',
+          ),
+        ),
+      );
+    }
   }
 
   Future<void> _editDescription() async {
