@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 
 import '../core/network/api_constants.dart';
 import '../core/models/job.dart';
+import '../core/models/applied_job.dart';
 
 // ============================================================================
 // USER JOB PROFILE
@@ -228,6 +229,47 @@ class JobsService {
       developer.log("applyForJob Exception: $e", stackTrace: s);
 
       return false;
+    }
+  }
+
+  // ==========================================================================
+  // FETCH APPLIED JOBS
+  // ==========================================================================
+  //
+  // 🚧 DB INTEGRATION POINT 🚧
+  // DB TEAM: no GET endpoint for this exists yet in the backend I was given
+  // — only POST /apply-job/:jobId/apply (applyForJob above). This is a
+  // PLACEHOLDER route guess. Confirm the real path and response shape.
+  // Expected: an array of rows from user_applied_jobs joined with jobs,
+  // each including "status" ('processing' | 'accepted' | 'rejected').
+  // ==========================================================================
+
+  Future<List<AppliedJob>> fetchAppliedJobs({required String phone}) async {
+    try {
+      final uri = Uri.parse(
+        "${ApiConstants.baseUrl}/jobs/applied",
+      ).replace(queryParameters: {"phone": phone});
+
+      developer.log("=== fetchAppliedJobs() ===");
+      developer.log("Request: $uri");
+
+      final response = await http.get(uri);
+
+      developer.log("Status: ${response.statusCode}");
+      developer.log("Response: ${response.body}");
+
+      if (response.statusCode != 200) {
+        developer.log("fetchAppliedJobs failed: ${response.statusCode}");
+        return [];
+      }
+
+      final data = jsonDecode(response.body);
+      final List applications = data["applications"] ?? data["jobs"] ?? [];
+
+      return applications.map((json) => AppliedJob.fromJson(json)).toList();
+    } catch (e, s) {
+      developer.log("fetchAppliedJobs Exception: $e", stackTrace: s);
+      return [];
     }
   }
 }

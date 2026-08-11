@@ -36,6 +36,7 @@ class PreferredJobsPage extends StatefulWidget {
 class _PreferredJobsPageState
     extends State<PreferredJobsPage> {
   late List<String> _selectedJobs;
+  bool _isLoadingOccupations = true;
 
   @override
   void initState() {
@@ -43,6 +44,20 @@ class _PreferredJobsPageState
 
     // Make a copy so we don't directly modify the parent's list.
     _selectedJobs = List<String>.from(widget.selectedJobs);
+
+    _loadOccupations();
+  }
+
+  Future<void> _loadOccupations() async {
+    // Loads job categories from the backend if they haven't been fetched
+    // yet in this app session. Without this, opening Preferred Jobs before
+    // ever visiting the Occupation editor shows a blank list — the data
+    // was never fetched.
+    await OccupationData.load();
+
+    if (!mounted) return;
+
+    setState(() => _isLoadingOccupations = false);
   }
 
   void _toggleJob(String jobId) {
@@ -79,10 +94,29 @@ class _PreferredJobsPageState
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoadingOccupations) {
+      final loadingContent = const Center(child: CircularProgressIndicator());
+
+      if (!widget.showSaveButton) {
+        return loadingContent;
+      }
+
+      return Scaffold(
+        backgroundColor: AppColors.pageBackground,
+        appBar: AppBar(
+          backgroundColor: AppColors.pageBackground,
+          elevation: 0,
+          foregroundColor: Colors.black,
+          title: const Text('Preferred jobs'),
+        ),
+        body: loadingContent,
+      );
+    }
+
     final bool limitReached =
         _selectedJobs.length >= widget.maxSelections;
 
-    return Column(
+    final content = Column(
       children: [
         Expanded(
           child: SingleChildScrollView(
@@ -140,7 +174,6 @@ class _PreferredJobsPageState
                           runSpacing: 8,
                           children:
                               entry.value.map((subrole) {
-                            // Database ID
                             final String jobId =
                                 subrole.id.toString();
 
@@ -153,25 +186,19 @@ class _PreferredJobsPageState
                                 limitReached;
 
                             return ChoiceChip(
-                              // Display job name
                               label: Text(
                                 subrole.name,
                               ),
-
                               selected: isSelected,
-
                               onSelected: isDisabled
                                   ? null
                                   : (_) =>
                                       _toggleJob(jobId),
-
                               selectedColor:
                                   AppColors.navy,
-
                               backgroundColor:
                                   AppColors
                                       .inputBackground,
-
                               labelStyle:
                                   TextStyle(
                                 color: isSelected
@@ -186,13 +213,11 @@ class _PreferredJobsPageState
                                 fontWeight:
                                     FontWeight.w500,
                               ),
-
                               side: BorderSide(
                                 color: isSelected
                                     ? AppColors.navy
                                     : AppColors.border,
                               ),
-
                               shape:
                                   RoundedRectangleBorder(
                                 borderRadius:
@@ -213,8 +238,6 @@ class _PreferredJobsPageState
           ),
         ),
 
-        // Only shown when editing preferred jobs
-        // from the Profile page.
         if (widget.showSaveButton)
           SafeArea(
             child: Padding(
@@ -251,6 +274,24 @@ class _PreferredJobsPageState
             ),
           ),
       ],
+    );
+
+    // Standalone (opened from Profile) needs its own Scaffold + back
+    // button. Embedded in registration's PageView, the parent already
+    // provides a Scaffold, so just return the bare content.
+    if (!widget.showSaveButton) {
+      return content;
+    }
+
+    return Scaffold(
+      backgroundColor: AppColors.pageBackground,
+      appBar: AppBar(
+        backgroundColor: AppColors.pageBackground,
+        elevation: 0,
+        foregroundColor: Colors.black,
+        title: const Text('Preferred jobs'),
+      ),
+      body: content,
     );
   }
 }
