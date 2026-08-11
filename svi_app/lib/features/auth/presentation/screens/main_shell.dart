@@ -5,6 +5,8 @@ import '../widgets/app_logo.dart';
 import '../widgets/app_bottom_nav_bar.dart';
 import 'home_screen.dart';
 import 'profile_page.dart';
+import 'applied_jobs_page.dart';
+import 'docs_page.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key, required this.phone});
@@ -19,9 +21,9 @@ class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
 
   void _handleMenuSelection(String value) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$value will be connected later.')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('$value will be connected later.')));
   }
 
   @override
@@ -45,7 +47,9 @@ class _MainShellState extends State<MainShell> {
                         onPressed: () {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Notifications will be connected later.'),
+                              content: Text(
+                                'Notifications will be connected later.',
+                              ),
                             ),
                           );
                         },
@@ -71,7 +75,10 @@ class _MainShellState extends State<MainShell> {
                     onSelected: _handleMenuSelection,
                     itemBuilder: (context) => const [
                       PopupMenuItem(value: 'Settings', child: Text('Settings')),
-                      PopupMenuItem(value: 'Help & support', child: Text('Help & support')),
+                      PopupMenuItem(
+                        value: 'Help & support',
+                        child: Text('Help & support'),
+                      ),
                       PopupMenuItem(value: 'Log out', child: Text('Log out')),
                     ],
                   ),
@@ -85,8 +92,8 @@ class _MainShellState extends State<MainShell> {
                 index: _currentIndex,
                 children: [
                   HomeScreen(phone: widget.phone),
-                  const _ComingSoonTab(label: 'Applied jobs'),
-                  const _ComingSoonTab(label: 'Documents'),
+                  AppliedJobsPage(phone: widget.phone),
+                  DocsPage(phone: widget.phone),
                   ProfilePage(phone: widget.phone),
                 ],
               ),
