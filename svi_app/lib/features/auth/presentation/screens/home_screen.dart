@@ -99,8 +99,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
                   hintText: 'Search for roles, skills, or locations...',
-                  hintStyle: const TextStyle(color: AppColors.mutedText, fontSize: 13),
-                  prefixIcon: const Icon(Icons.search, color: AppColors.mutedText),
+                  hintStyle: const TextStyle(
+                    color: AppColors.mutedText,
+                    fontSize: 13,
+                  ),
+                  prefixIcon: const Icon(
+                    Icons.search,
+                    color: AppColors.mutedText,
+                  ),
                   filled: true,
                   fillColor: AppColors.inputBackground,
                   contentPadding: const EdgeInsets.symmetric(vertical: 12),
@@ -151,6 +157,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         MaterialPageRoute(
                           builder: (_) => JobDetailsPage(
                             jobId: job.id,
+                            phone: widget.phone,
                             initialJob: job,
                           ),
                         ),

@@ -44,9 +44,27 @@ export const getRecommendedJobs = async (req, res) => {
         j.updated_at,
 
         CASE
-          WHEN LOWER(TRIM(jc.name)) = ui.occupation THEN 1
-          WHEN LOWER(TRIM(jc.skill_type)) = 'unskilled' THEN 2
-          ELSE 3
+          -- ============================================================
+          -- PRIORITY 1: USER'S PREFERRED JOBS
+          -- ============================================================
+          WHEN EXISTS (
+            SELECT 1
+            FROM public.user_preferred_jobs upj
+            WHERE upj.user_id = $1
+              AND upj.job_subcategory_id = j.subcategory_id
+          ) THEN 1
+
+          -- ============================================================
+          -- PRIORITY 2: USER'S OCCUPATION
+          -- ============================================================
+          WHEN LOWER(TRIM(jc.name)) = ui.occupation THEN 2
+
+          -- ============================================================
+          -- PRIORITY 3: UNSKILLED JOBS
+          -- ============================================================
+          WHEN LOWER(TRIM(jc.skill_type)) = 'unskilled' THEN 3
+
+          ELSE 4
         END AS recommendation_priority
 
       FROM public.jobs j
@@ -60,12 +78,41 @@ export const getRecommendedJobs = async (req, res) => {
       CROSS JOIN user_info ui
 
       WHERE
-        LOWER(TRIM(jc.name)) = ui.occupation
-        OR LOWER(TRIM(jc.skill_type)) = 'unskilled'
+        (
+          -- Preferred jobs
+          EXISTS (
+            SELECT 1
+            FROM public.user_preferred_jobs upj
+            WHERE upj.user_id = $1
+              AND upj.job_subcategory_id = j.subcategory_id
+          )
+
+          OR
+
+          -- Occupation jobs
+          LOWER(TRIM(jc.name)) = ui.occupation
+
+          OR
+
+          -- Unskilled jobs
+          LOWER(TRIM(jc.skill_type)) = 'unskilled'
+        )
+
+        -- ==============================================================
+        -- NEVER SHOW A JOB THE USER HAS ALREADY APPLIED FOR
+        -- ==============================================================
+
+        AND NOT EXISTS (
+          SELECT 1
+          FROM public.user_applied_jobs uaj
+          WHERE uaj.user_id = $1
+            AND uaj.job_id = j.id
+        )
 
       ORDER BY
         recommendation_priority ASC,
         j.created_at DESC;
+
     `;
 
     const result = await pool.query(query, [user_id]);

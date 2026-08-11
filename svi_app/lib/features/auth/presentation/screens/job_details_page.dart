@@ -8,11 +8,14 @@ class JobDetailsPage extends StatefulWidget {
   const JobDetailsPage({
     super.key,
     required this.jobId,
+    required this.phone,
     this.initialJob,
   });
 
-  /// The job's id — used to fetch full details from the backend.
   final String jobId;
+  final String phone;
+
+  /// The job's id — used to fetch full details from the backend.
 
   /// Optional: the Job object already shown on the home screen's card, if
   /// available. Shown immediately while the full fetch is in flight so the
@@ -68,6 +71,31 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
     });
   }
 
+  Future<void> _applyForJob() async {
+  if (_job == null) return;
+
+  final success = await _jobsService.applyForJob(
+    jobId: widget.jobId,
+    phone: widget.phone,
+  );
+
+  if (!mounted) return;
+
+  if (success) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Job applied successfully'),
+      ),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Could not apply for this job'),
+      ),
+    );
+  }
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -90,13 +118,7 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
                   width: double.infinity,
                   height: 52,
                   child: ElevatedButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Applying will be connected later.'),
-                        ),
-                      );
-                    },
+                    onPressed: _applyForJob,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.navy,
                       foregroundColor: Colors.white,
@@ -106,7 +128,10 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
                     ),
                     child: const Text(
                       'Apply now',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
@@ -181,7 +206,9 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
             ),
             alignment: Alignment.center,
             child: Text(
-              job.companyName.isNotEmpty ? job.companyName[0].toUpperCase() : '?',
+              job.companyName.isNotEmpty
+                  ? job.companyName[0].toUpperCase()
+                  : '?',
               style: const TextStyle(
                 fontWeight: FontWeight.w700,
                 fontSize: 22,
@@ -205,7 +232,10 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
             runSpacing: 8,
             children: [
               if (job.location.isNotEmpty)
-                _DetailTag(icon: Icons.location_on_outlined, label: job.location),
+                _DetailTag(
+                  icon: Icons.location_on_outlined,
+                  label: job.location,
+                ),
               if (job.jobType.isNotEmpty)
                 _DetailTag(icon: Icons.schedule_outlined, label: job.jobType),
               if (job.category.isNotEmpty)
@@ -253,7 +283,11 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
             job.description.isNotEmpty
                 ? job.description
                 : 'No description provided for this job yet.',
-            style: const TextStyle(fontSize: 14, height: 1.5, color: Colors.black87),
+            style: const TextStyle(
+              fontSize: 14,
+              height: 1.5,
+              color: Colors.black87,
+            ),
           ),
           const SizedBox(height: 90), // keeps content clear of the Apply button
         ],

@@ -8,7 +8,6 @@ import 'package:http/http.dart' as http;
 import '../core/network/api_constants.dart';
 import '../core/models/job.dart';
 
-
 // ============================================================================
 // USER JOB PROFILE
 // ============================================================================
@@ -25,13 +24,11 @@ class UserJobProfile {
   });
 }
 
-
 // ============================================================================
 // JOBS SERVICE
 // ============================================================================
 
 class JobsService {
-
   // ==========================================================================
   // FETCH USER PROFILE
   // ==========================================================================
@@ -49,40 +46,24 @@ class JobsService {
   //
   // ==========================================================================
 
-  Future<UserJobProfile> fetchUserProfile({
-    required String phone,
-  }) async {
+  Future<UserJobProfile> fetchUserProfile({required String phone}) async {
     try {
       final uri = Uri.parse(
         "${ApiConstants.baseUrl}/users/profile",
-      ).replace(
-        queryParameters: {
-          "phone": phone,
-        },
-      );
+      ).replace(queryParameters: {"phone": phone});
 
-      developer.log(
-        "=== fetchUserProfile() ===",
-      );
+      developer.log("=== fetchUserProfile() ===");
 
-      developer.log(
-        "Request: $uri",
-      );
+      developer.log("Request: $uri");
 
       final response = await http.get(uri);
 
-      developer.log(
-        "Status: ${response.statusCode}",
-      );
+      developer.log("Status: ${response.statusCode}");
 
-      developer.log(
-        "Response: ${response.body}",
-      );
+      developer.log("Response: ${response.body}");
 
       if (response.statusCode != 200) {
-        developer.log(
-          "fetchUserProfile failed: ${response.statusCode}",
-        );
+        developer.log("fetchUserProfile failed: ${response.statusCode}");
 
         return UserJobProfile(
           userId: '',
@@ -95,17 +76,11 @@ class JobsService {
 
       return UserJobProfile(
         userId: data["user_id"] ?? '',
-        occupationCategory:
-            data["occupation_category"] ?? '',
-        preferredJobs:
-            List<String>.from(data["preferred_jobs"] ?? []),
+        occupationCategory: data["occupation_category"] ?? '',
+        preferredJobs: List<String>.from(data["preferred_jobs"] ?? []),
       );
-
     } catch (e, s) {
-      developer.log(
-        "fetchUserProfile Exception: $e",
-        stackTrace: s,
-      );
+      developer.log("fetchUserProfile Exception: $e", stackTrace: s);
 
       return UserJobProfile(
         userId: '',
@@ -114,7 +89,6 @@ class JobsService {
       );
     }
   }
-
 
   // ==========================================================================
   // FETCH RECOMMENDED JOBS
@@ -145,40 +119,24 @@ class JobsService {
   //
   // ==========================================================================
 
-  Future<List<Job>> fetchRecommendedJobs({
-    required String userId,
-  }) async {
+  Future<List<Job>> fetchRecommendedJobs({required String userId}) async {
     try {
       final uri = Uri.parse(
         "${ApiConstants.baseUrl}/recommended-jobs",
-      ).replace(
-        queryParameters: {
-          "user_id": userId,
-        },
-      );
+      ).replace(queryParameters: {"user_id": userId});
 
-      developer.log(
-        "=== fetchRecommendedJobs() ===",
-      );
+      developer.log("=== fetchRecommendedJobs() ===");
 
-      developer.log(
-        "Request: $uri",
-      );
+      developer.log("Request: $uri");
 
       final response = await http.get(uri);
 
-      developer.log(
-        "Status: ${response.statusCode}",
-      );
+      developer.log("Status: ${response.statusCode}");
 
-      developer.log(
-        "Response: ${response.body}",
-      );
+      developer.log("Response: ${response.body}");
 
       if (response.statusCode != 200) {
-        developer.log(
-          "fetchRecommendedJobs failed: ${response.statusCode}",
-        );
+        developer.log("fetchRecommendedJobs failed: ${response.statusCode}");
 
         return [];
       }
@@ -187,17 +145,9 @@ class JobsService {
 
       final List jobs = data["jobs"] ?? [];
 
-      return jobs
-          .map(
-            (json) => Job.fromJson(json),
-          )
-          .toList();
-
+      return jobs.map((json) => Job.fromJson(json)).toList();
     } catch (e, s) {
-      developer.log(
-        "fetchRecommendedJobs Exception: $e",
-        stackTrace: s,
-      );
+      developer.log("fetchRecommendedJobs Exception: $e", stackTrace: s);
 
       return [];
     }
@@ -244,5 +194,40 @@ class JobsService {
       return null;
     }
   }
-}
 
+  Future<bool> applyForJob({
+    required String jobId,
+    required String phone,
+  }) async {
+    try {
+      final uri = Uri.parse("${ApiConstants.baseUrl}/apply-job/$jobId/apply");
+
+      developer.log("=== applyForJob() ===");
+      developer.log("Request: $uri");
+      developer.log("Job ID: $jobId");
+      developer.log("Phone: $phone");
+
+      final response = await http.post(
+        uri,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"phone": phone}),
+      );
+
+      developer.log("Apply status: ${response.statusCode}");
+
+      developer.log("Apply response: ${response.body}");
+
+      if (response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+
+        return data["success"] == true;
+      }
+
+      return false;
+    } catch (e, s) {
+      developer.log("applyForJob Exception: $e", stackTrace: s);
+
+      return false;
+    }
+  }
+}

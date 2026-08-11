@@ -44,6 +44,7 @@ router.get("/profile", async (req, res) => {
       ud.city,
       ud.state,
       ud.occupation,
+      ud.years_of_experience,
       ud.description,
       ud.live_photo_url
     FROM public.users u
@@ -67,6 +68,7 @@ router.get("/profile", async (req, res) => {
     console.log("[PROFILE] User ID:", user.user_id);
     console.log("[PROFILE] Name:", user.name);
     console.log("[PROFILE] Occupation:", user.occupation);
+    console.log("[PROFILE] Years of experience:", user.years_of_experience);
 
     // Get user's preferred job subcategory IDs
     const preferredJobsResult = await pool.query(
@@ -94,7 +96,7 @@ router.get("/profile", async (req, res) => {
       city: user.city ?? "",
       state: user.state ?? "",
       occupation_category: user.occupation ?? "",
-      years_of_experience: "",
+      years_of_experience: user.years_of_experience ?? "",
       description: user.description ?? "",
       preferred_jobs: preferredJobs,
       profile_photo_url: user.live_photo_url ?? "",

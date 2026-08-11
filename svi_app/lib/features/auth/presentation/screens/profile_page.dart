@@ -565,7 +565,7 @@ class _ProfilePageState extends State<ProfilePage> {
             child: _EditableRow(
               label: 'Years of experience',
               text: _profile!.yearsOfExperience.isNotEmpty
-                  ? '${_profile!.yearsOfExperience} yrs'
+                  ? '${_profile!.yearsOfExperience}'
                   : 'Not set',
               textStyle: const TextStyle(
                 fontSize: 15,
