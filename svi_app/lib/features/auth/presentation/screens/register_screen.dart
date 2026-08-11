@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../services/auth_service.dart';
 import '../../../../services/registration_service.dart';
+import '../../../../core/constants/occupation_data.dart';
 import 'verification_page.dart';
 import 'personal_info_page.dart';
 import 'documents_page.dart';
@@ -54,6 +55,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String get _fullPhone => '+91${_phoneController.text.trim()}';
 
   @override
+  void initState() {
+    super.initState();
+
+    OccupationData.load();
+  }
+
+  @override
   void dispose() {
     _pageController.dispose();
 
@@ -73,9 +81,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _handleSendOtp() async {
     if (_phoneController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter your phone number'),
-        ),
+        const SnackBar(content: Text('Please enter your phone number')),
       );
       return;
     }
@@ -94,22 +100,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          success
-              ? 'OTP sent successfully'
-              : 'Failed to send OTP',
-        ),
+        content: Text(success ? 'OTP sent successfully' : 'Failed to send OTP'),
       ),
     );
   }
 
   Future<bool> _handleVerifyOtp() async {
     if (_otpController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter the OTP'),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please enter the OTP')));
 
       return false;
     }
@@ -132,11 +132,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          success
-              ? 'OTP verified'
-              : 'Invalid OTP, try again',
-        ),
+        content: Text(success ? 'OTP verified' : 'Invalid OTP, try again'),
       ),
     );
 
@@ -152,9 +148,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'You can only select up to $_maxPreferredJobs jobs',
-            ),
+            content: Text('You can only select up to $_maxPreferredJobs jobs'),
           ),
         );
       }
@@ -164,9 +158,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _createAccount() async {
     if (_aadhaarImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please upload your Aadhaar photo'),
-        ),
+        const SnackBar(content: Text('Please upload your Aadhaar photo')),
       );
 
       await _pageController.animateToPage(
@@ -179,11 +171,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
 
     if (_selfieImage == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please take your selfie'),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please take your selfie')));
 
       await _pageController.animateToPage(
         2,
@@ -195,11 +185,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
 
     if (_nameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter your name'),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please enter your name')));
 
       await _pageController.animateToPage(
         1,
@@ -214,9 +202,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _cityController.text.trim().isEmpty ||
         _stateController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please complete your address details'),
-        ),
+        const SnackBar(content: Text('Please complete your address details')),
       );
 
       await _pageController.animateToPage(
@@ -230,9 +216,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (_occupationController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select your occupation'),
-        ),
+        const SnackBar(content: Text('Please select your occupation')),
       );
 
       await _pageController.animateToPage(
@@ -246,9 +230,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (_aadhaarController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter your Aadhaar number'),
-        ),
+        const SnackBar(content: Text('Please enter your Aadhaar number')),
       );
 
       await _pageController.animateToPage(
@@ -275,6 +257,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       aadhaarNumber: _aadhaarController.text.trim(),
       aadhaarPhoto: _aadhaarImage!,
       livePhoto: _selfieImage!,
+      preferredJobs: _selectedPreferredJobs,
     );
 
     if (!mounted) return;
@@ -285,9 +268,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Account created successfully'),
-        ),
+        const SnackBar(content: Text('Account created successfully')),
       );
 
       Navigator.pushReplacement(
@@ -297,9 +278,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Account creation failed. Please try again.',
-          ),
+          content: Text('Account creation failed. Please try again.'),
         ),
       );
     }
@@ -338,18 +317,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (_currentPage == 2) {
       if (_aadhaarImage == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please upload your Aadhaar photo'),
-          ),
+          const SnackBar(content: Text('Please upload your Aadhaar photo')),
         );
         return;
       }
 
       if (_selfieImage == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please take your selfie'),
-          ),
+          const SnackBar(content: Text('Please take your selfie')),
         );
         return;
       }
@@ -387,30 +362,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 22,
-                vertical: 12,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
               child: Row(
-                children: List.generate(
-                  _totalPages,
-                  (i) {
-                    return Expanded(
-                      child: Container(
-                        margin: EdgeInsets.only(
-                          right: i != _totalPages - 1 ? 8 : 0,
-                        ),
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: i <= _currentPage
-                              ? AppColors.navy
-                              : AppColors.border,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
+                children: List.generate(_totalPages, (i) {
+                  return Expanded(
+                    child: Container(
+                      margin: EdgeInsets.only(
+                        right: i != _totalPages - 1 ? 8 : 0,
                       ),
-                    );
-                  },
-                ),
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: i <= _currentPage
+                            ? AppColors.navy
+                            : AppColors.border,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  );
+                }),
               ),
             ),
 
@@ -471,15 +440,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   if (_currentPage > 0)
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: _isCreatingAccount
-                            ? null
-                            : _goBack,
+                        onPressed: _isCreatingAccount ? null : _goBack,
                         style: OutlinedButton.styleFrom(
                           minimumSize: const Size.fromHeight(52),
                           foregroundColor: AppColors.navy,
-                          side: const BorderSide(
-                            color: AppColors.border,
-                          ),
+                          side: const BorderSide(color: AppColors.border),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -488,15 +453,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
 
-                  if (_currentPage > 0)
-                    const SizedBox(width: 12),
+                  if (_currentPage > 0) const SizedBox(width: 12),
 
                   Expanded(
                     child: ElevatedButton(
-                      onPressed:
-                          (_isVerifyingOtp || _isCreatingAccount)
-                              ? null
-                              : _goNext,
+                      onPressed: (_isVerifyingOtp || _isCreatingAccount)
+                          ? null
+                          : _goNext,
                       style: ElevatedButton.styleFrom(
                         minimumSize: const Size.fromHeight(52),
                         backgroundColor: AppColors.navy,

@@ -24,6 +24,7 @@ export async function createAccount(req, res) {
     occupation,
     description,
     aadhaarNumber,
+    preferredJobs,
   } = req.body;
 
   let cleanPhone = phone?.replace(/\D/g, "");
@@ -33,11 +34,13 @@ export async function createAccount(req, res) {
   if (cleanPhone?.length === 12 && cleanPhone.startsWith("91")) {
     cleanPhone = cleanPhone.substring(2);
   }
+
   console.log("Registration body:", req.body);
   console.log("Raw phone:", phone);
   console.log("Clean phone:", cleanPhone);
   console.log("Raw Aadhaar:", aadhaarNumber);
   console.log("Clean Aadhaar:", cleanAadhaar);
+  console.log("Preferred jobs:", preferredJobs);
 
   // Validate phone
   if (!cleanPhone || cleanPhone.length !== 10) {
@@ -55,11 +58,47 @@ export async function createAccount(req, res) {
     });
   }
 
+  // Convert preferredJobs into an array
+  let parsedPreferredJobs = [];
+
+  try {
+    if (preferredJobs) {
+      parsedPreferredJobs =
+        typeof preferredJobs === "string"
+          ? JSON.parse(preferredJobs)
+          : preferredJobs;
+    }
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid preferred jobs format",
+    });
+  }
+
+  // Make sure preferredJobs is an array
+  if (!Array.isArray(parsedPreferredJobs)) {
+    return res.status(400).json({
+      success: false,
+      message: "Preferred jobs must be an array",
+    });
+  }
+
+  // Make sure all IDs are integers
+  const invalidJobIds = parsedPreferredJobs.some(
+    (jobId) => !Number.isInteger(Number(jobId))
+  );
+
+  if (invalidJobIds) {
+    return res.status(400).json({
+      success: false,
+      message: "Preferred job IDs must be integers",
+    });
+  }
+
   // Create URLs for the locally stored files
   const baseUrl = `${req.protocol}://${req.get("host")}`;
 
   const aadhaarPhotoUrl = `${baseUrl}/uploads/${aadhaarPhoto.filename}`;
-
   const livePhotoUrl = `${baseUrl}/uploads/${livePhoto.filename}`;
 
   console.log("Aadhaar URL:", aadhaarPhotoUrl);
@@ -83,7 +122,7 @@ export async function createAccount(req, res) {
         ($1, $2, true)
         RETURNING id
       `,
-      [name, cleanPhone],
+      [name, cleanPhone]
     );
 
     const userId = userResult.rows[0].id;
@@ -116,8 +155,24 @@ export async function createAccount(req, res) {
         cleanAadhaar,
         aadhaarPhotoUrl,
         livePhotoUrl,
-      ],
+      ]
     );
+
+    // Insert preferred jobs
+    for (const jobSubcategoryId of parsedPreferredJobs) {
+      await client.query(
+        `
+          INSERT INTO user_preferred_jobs
+          (
+            user_id,
+            job_subcategory_id
+          )
+          VALUES
+          ($1, $2)
+        `,
+        [userId, Number(jobSubcategoryId)]
+      );
+    }
 
     await client.query("COMMIT");
 

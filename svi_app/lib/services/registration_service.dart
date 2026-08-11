@@ -21,6 +21,7 @@ class RegistrationService {
     required String aadhaarNumber,
     required XFile aadhaarPhoto,
     required XFile livePhoto,
+    required List<String> preferredJobs,
   }) async {
     try {
       final uri = Uri.parse(
@@ -47,6 +48,9 @@ class RegistrationService {
       request.fields["description"] = description;
       request.fields["aadhaarNumber"] = aadhaarNumber;
 
+      // Preferred job subcategory IDs
+      request.fields["preferredJobs"] = jsonEncode(preferredJobs);
+
       // Aadhaar image
       request.files.add(
         http.MultipartFile.fromBytes(
@@ -72,6 +76,7 @@ class RegistrationService {
       developer.log(
         "Live photo: ${livePhoto.name} (${livePhotoBytes.length} bytes)",
       );
+      developer.log("Preferred jobs: $preferredJobs");
 
       final streamedResponse = await request.send();
 

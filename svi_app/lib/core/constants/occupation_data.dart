@@ -3,61 +3,28 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:svi_app/core/network/api_constants.dart';
 
+class JobSubcategory {
+  final int id;
+  final String name;
+
+  JobSubcategory({
+    required this.id,
+    required this.name,
+  });
+}
+
 class OccupationData {
   OccupationData._();
 
-  // Example:
-  // {
-  //   "Construction": ["Mason", "Bricklayer"],
-  //   "Electrical": ["Electrician", "Wireman"]
-  // }
-  static final Map<String, List<String>> _categories = {};
+  static final Map<String, List<JobSubcategory>> _categories = {};
 
   static bool _isLoading = false;
   static bool _loaded = false;
 
-  /// Returns:
-  /// Category -> list of subcategories/jobs
-  static Map<String, List<String>> get categories {
-    _loadFromBackend();
-
-    return Map.unmodifiable(
-      _categories.map(
-        (key, value) => MapEntry(
-          key,
-          List<String>.unmodifiable(value),
-        ),
-      ),
-    );
-  }
-
-  /// Returns only the category names.
-  static List<String> get categoryTitles {
-    _loadFromBackend();
-
-    return List.unmodifiable(_categories.keys);
-  }
-
-  /// Returns all available job/subrole names.
+  /// Load jobs from the backend.
   ///
-  /// Example:
-  /// Mason
-  /// Bricklayer
-  /// Electrician
-  /// Wireman
-  static List<String> get allOptions {
-    _loadFromBackend();
-
-    final List<String> options = [];
-
-    for (final subroles in _categories.values) {
-      options.addAll(subroles);
-    }
-
-    return List.unmodifiable(options);
-  }
-
-  static Future<void> _loadFromBackend() async {
+  /// This must be awaited before reading [categories].
+  static Future<void> load() async {
     if (_isLoading || _loaded) {
       return;
     }
@@ -87,7 +54,7 @@ class OccupationData {
           continue;
         }
 
-        final List<String> subcategories = [];
+        final List<JobSubcategory> subcategories = [];
 
         final dynamic rawSubcategories =
             categoryData['subcategories'];
@@ -95,12 +62,27 @@ class OccupationData {
         if (rawSubcategories is List) {
           for (final subcategory in rawSubcategories) {
             if (subcategory is Map) {
+              final dynamic rawId = subcategory['id'];
+
               final String name =
                   subcategory['name']?.toString().trim() ?? '';
 
-              if (name.isNotEmpty) {
-                subcategories.add(name);
+              if (rawId == null || name.isEmpty) {
+                continue;
               }
+
+              final int? id = int.tryParse(rawId.toString());
+
+              if (id == null) {
+                continue;
+              }
+
+              subcategories.add(
+                JobSubcategory(
+                  id: id,
+                  name: name,
+                ),
+              );
             }
           }
         }
@@ -123,10 +105,50 @@ class OccupationData {
     }
   }
 
+  /// Returns:
+  /// Category -> list of subcategories/jobs
+  ///
+  /// Call [load] before using this.
+  static Map<String, List<JobSubcategory>> get categories {
+    return Map.unmodifiable(
+      _categories.map(
+        (key, value) => MapEntry(
+          key,
+          List<JobSubcategory>.unmodifiable(value),
+        ),
+      ),
+    );
+  }
+
+  /// Returns only the category names.
+  static List<String> get categoryTitles {
+    return List.unmodifiable(_categories.keys);
+  }
+
+  /// Returns all available job/subrole names.
+  ///
+  /// Example:
+  /// Mason
+  /// Bricklayer
+  /// Electrician
+  /// Wireman
+  static List<String> get allOptions {
+    final List<String> options = [];
+
+    for (final subroles in _categories.values) {
+      for (final subrole in subroles) {
+        options.add(subrole.name);
+      }
+    }
+
+    return List.unmodifiable(options);
+  }
+
+  /// Force reload jobs from the backend.
   static Future<void> refresh() async {
     _loaded = false;
     _categories.clear();
 
-    await _loadFromBackend();
+    await load();
   }
 }

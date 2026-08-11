@@ -1,3 +1,5 @@
+// preferred_jobs_page.dart
+
 import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_colors.dart';
@@ -11,8 +13,12 @@ class PreferredJobsPage extends StatelessWidget {
     this.maxSelections = 10,
   });
 
-  final List<String> selectedJobs; // stores "Category|Subrole" strings
-  final void Function(String jobKey) onToggle;
+  // Stores job_subcategory IDs as strings.
+  // Example: ["7", "12", "15"]
+  final List<String> selectedJobs;
+
+  final void Function(String jobId) onToggle;
+
   final int maxSelections;
 
   @override
@@ -26,13 +32,23 @@ class PreferredJobsPage extends StatelessWidget {
         children: [
           const Text(
             'Preferred jobs',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+            ),
           ),
+
           const SizedBox(height: 6),
+
           Text(
-            'Pick up to $maxSelections (${selectedJobs.length}/$maxSelections selected)',
-            style: const TextStyle(color: AppColors.mutedText, fontSize: 14),
+            'Pick up to $maxSelections '
+            '(${selectedJobs.length}/$maxSelections selected)',
+            style: const TextStyle(
+              color: AppColors.mutedText,
+              fontSize: 14,
+            ),
           ),
+
           const SizedBox(height: 24),
 
           for (final entry in OccupationData.categories.entries)
@@ -48,34 +64,53 @@ class PreferredJobsPage extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                     ),
                   ),
+
                   const SizedBox(height: 10),
+
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: entry.value.map((subrole) {
-                      final jobKey = '${entry.key}|$subrole';
-                      final isSelected = selectedJobs.contains(jobKey);
-                      final isDisabled = !isSelected && limitReached;
+                      // Database ID of this job_subcategory
+                      final String jobId = subrole.id.toString();
+
+                      final bool isSelected =
+                          selectedJobs.contains(jobId);
+
+                      final bool isDisabled =
+                          !isSelected && limitReached;
 
                       return ChoiceChip(
-                        label: Text(subrole),
+                        // Display the name to the user
+                        label: Text(subrole.name),
+
                         selected: isSelected,
+
                         onSelected: isDisabled
                             ? null
-                            : (_) => onToggle(jobKey),
+                            : (_) => onToggle(jobId),
+
                         selectedColor: AppColors.navy,
-                        backgroundColor: AppColors.inputBackground,
+
+                        backgroundColor:
+                            AppColors.inputBackground,
+
                         labelStyle: TextStyle(
                           color: isSelected
                               ? Colors.white
                               : (isDisabled
-                                  ? AppColors.mutedText.withOpacity(0.5)
+                                  ? AppColors.mutedText
+                                      .withOpacity(0.5)
                                   : Colors.black),
                           fontWeight: FontWeight.w500,
                         ),
+
                         side: BorderSide(
-                          color: isSelected ? AppColors.navy : AppColors.border,
+                          color: isSelected
+                              ? AppColors.navy
+                              : AppColors.border,
                         ),
+
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
@@ -85,6 +120,7 @@ class PreferredJobsPage extends StatelessWidget {
                 ],
               ),
             ),
+
           const SizedBox(height: 12),
         ],
       ),
