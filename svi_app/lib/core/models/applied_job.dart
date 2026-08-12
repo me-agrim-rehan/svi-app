@@ -1,7 +1,5 @@
 // lib/core/models/applied_job.dart
 
-enum ApplicationStatus { processing, accepted, rejected }
-
 class AppliedJob {
   final String applicationId;
   final String jobId;
@@ -10,7 +8,7 @@ class AppliedJob {
   final String location;
   final String jobType;
   final String salaryRange;
-  final ApplicationStatus status;
+  final String status;
 
   AppliedJob({
     required this.applicationId,
@@ -44,26 +42,15 @@ class AppliedJob {
       salaryRange = 'Up to ₹$salaryMax';
     }
 
-    ApplicationStatus parseStatus(String? raw) {
-      switch (raw?.toLowerCase()) {
-        case 'accepted':
-          return ApplicationStatus.accepted;
-        case 'rejected':
-          return ApplicationStatus.rejected;
-        default:
-          return ApplicationStatus.processing;
-      }
-    }
-
     return AppliedJob(
-      applicationId: json['id'].toString(),
+      applicationId: json['application_id'].toString(),
       jobId: json['job_id'].toString(),
       title: json['name'] ?? json['title'] ?? '',
       companyName: json['company'] ?? '',
       location: json['work_location'] ?? '',
       jobType: json['job_type'] ?? '',
       salaryRange: salaryRange,
-      status: parseStatus(json['status']),
+      status: json['status']?.toString() ?? '',
     );
   }
 }

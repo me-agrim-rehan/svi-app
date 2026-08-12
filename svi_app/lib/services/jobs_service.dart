@@ -247,7 +247,7 @@ class JobsService {
   Future<List<AppliedJob>> fetchAppliedJobs({required String phone}) async {
     try {
       final uri = Uri.parse(
-        "${ApiConstants.baseUrl}/jobs/applied",
+        "${ApiConstants.baseUrl}/apply-job/applied",
       ).replace(queryParameters: {"phone": phone});
 
       developer.log("=== fetchAppliedJobs() ===");
@@ -264,11 +264,15 @@ class JobsService {
       }
 
       final data = jsonDecode(response.body);
-      final List applications = data["applications"] ?? data["jobs"] ?? [];
 
-      return applications.map((json) => AppliedJob.fromJson(json)).toList();
+      final List applications = data["applications"] ?? [];
+
+      return applications
+          .map((json) => AppliedJob.fromJson(Map<String, dynamic>.from(json)))
+          .toList();
     } catch (e, s) {
       developer.log("fetchAppliedJobs Exception: $e", stackTrace: s);
+
       return [];
     }
   }

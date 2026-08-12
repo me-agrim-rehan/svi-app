@@ -10,27 +10,37 @@ class AppliedJobCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   _StatusStyle get _style {
-    switch (job.status) {
-      case ApplicationStatus.accepted:
+    switch (job.status.toLowerCase()) {
+      case 'accepted':
         return const _StatusStyle(
           label: 'Accepted',
           background: Color(0xFFEAF7EE),
           border: Color(0xFF34A853),
           text: Color(0xFF1E7A34),
         );
-      case ApplicationStatus.rejected:
+
+      case 'rejected':
         return const _StatusStyle(
           label: 'Rejected',
           background: Color(0xFFFDECEC),
           border: Color(0xFFE53935),
           text: Color(0xFFC62828),
         );
-      case ApplicationStatus.processing:
+
+      case 'processing':
         return const _StatusStyle(
           label: 'In progress',
           background: Color(0xFFFFF8E1),
           border: Color(0xFFF9A825),
           text: Color(0xFF8D6E00),
+        );
+
+      default:
+        return const _StatusStyle(
+          label: 'Unknown',
+          background: Color(0xFFF5F5F5),
+          border: Color(0xFFBDBDBD),
+          text: Color(0xFF616161),
         );
     }
   }
@@ -100,7 +110,10 @@ class AppliedJobCard extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     color: style.background,
                     borderRadius: BorderRadius.circular(20),
