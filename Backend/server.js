@@ -2,16 +2,20 @@
 import dotenv from "dotenv";
 import express from "express";
 import pool from "./db.js";
-import otpRoutes from "./routes/registerRoutes.js";
+// import otpRoutes from "./routes/registerOtpRoutes.js"; twilio expired
 import cors from "cors";
 import registrationRoutes from "./routes/registrationRoutes.js";
 import jobRoutes from "./routes/jobRoutes.js";
-import loginRoutes from "./routes/loginRoutes.js";
+// import loginRoutes from "./routes/loginOtpRoutes.js"; twilio expired
 import postedJobRoutes from "./routes/postedJobRoutes.js";
 import recommendedJobRoutes from "./routes/recommendedJobRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import experienceRoutes from "./routes/experienceRoutes.js";
 import applyJobRoutes from "./routes/applyJobRoutes.js";
+
+// temp routes login/ regitster
+import tempLoginOtpRoutes from "./routes/temp/tempLoginOtpRoutes.js";
+import tempRegisterOtpRoutes from "./routes/temp/tempRegisterOtpRoutes.js";
 
 dotenv.config();
 
@@ -28,8 +32,12 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/otp", otpRoutes);
-app.use("/auth/login", loginRoutes);
+// app.use("/otp", otpRoutes);
+// app.use("/auth/login", loginRoutes); twilio Epired
+// temp routes for login and register
+app.use("/auth/login", tempLoginOtpRoutes);
+app.use("/otp", tempRegisterOtpRoutes);
+
 app.use("/registration", registrationRoutes);
 app.use("/jobs", jobRoutes);
 app.use("/posted-jobs", postedJobRoutes);
