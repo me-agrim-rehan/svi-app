@@ -13,7 +13,7 @@ import userRoutes from "./routes/userRoutes.js";
 import experienceRoutes from "./routes/experienceRoutes.js";
 import applyJobRoutes from "./routes/applyJobRoutes.js";
 import signedDocumentRoutes from "./routes/signedDocumentRoutes.js";
-
+import userOfferRoutes from "./routes/offer/userOfferRoutes.js";
 // temp routes login/ regitster
 import tempLoginOtpRoutes from "./routes/temp/tempLoginOtpRoutes.js";
 import tempRegisterOtpRoutes from "./routes/temp/tempRegisterOtpRoutes.js";
@@ -47,6 +47,10 @@ app.use("/users", userRoutes);
 app.use("/experience-ranges", experienceRoutes);
 app.use("/apply-job", applyJobRoutes);
 app.use("/signed-documents", signedDocumentRoutes);
+app.use("/offer", userOfferRoutes);
+
+// admin
+app.use("/admin", express.static("admin"));
 
 pool.query("SELECT NOW()")
   .then((result) => {

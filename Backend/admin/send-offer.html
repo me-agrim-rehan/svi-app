@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Send Document | Admin</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f6f8;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+            margin: 0 auto;
+        }
+
+        .header {
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #6b7280;
+            font-size: 15px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 14px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 13px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: #2563eb;
+        }
+
+        input[type="file"] {
+            padding: 10px;
+            background: #f9fafb;
+        }
+
+        .hint {
+            margin-top: 6px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .file-name {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #374151;
+        }
+
+        button {
+            width: 100%;
+            border: none;
+            background: #2563eb;
+            color: white;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .message {
+            display: none;
+            margin-bottom: 20px;
+            padding: 13px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .message.success {
+            display: block;
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        .message.error {
+            display: block;
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .document-preview {
+            display: none;
+            margin-top: 25px;
+            padding: 18px;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            background: #f9fafb;
+        }
+
+        .document-preview h3 {
+            font-size: 15px;
+            color: #111827;
+            margin-bottom: 12px;
+        }
+
+        .document-preview p {
+            font-size: 13px;
+            color: #4b5563;
+            margin-bottom: 6px;
+        }
+
+        .document-preview a {
+            display: inline-block;
+            margin-top: 10px;
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .document-preview a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <div class="header">
+            <h1>Send Document</h1>
+            <p>Upload an offer or other document and send it to a user.</p>
+        </div>
+
+        <div class="card">
+
+            <div id="message" class="message"></div>
+
+            <form id="offerForm">
+
+                <!-- USER ID -->
+                <div class="form-group">
+                    <label for="userId">
+                        User ID
+                    </label>
+
+                    <input type="text" id="userId" name="user_id" placeholder="Enter user UUID" required>
+
+                    <div class="hint">
+                        Enter the user's UUID from the database.
+                    </div>
+                </div>
+
+                <!-- DOCUMENT NAME -->
+                <div class="form-group">
+                    <label for="documentName">
+                        Document Name
+                    </label>
+
+                    <input type="text" id="documentName" name="document_name" placeholder="Example: Offer Letter"
+                        required>
+                </div>
+
+                <!-- DOCUMENT TYPE -->
+                <div class="form-group">
+                    <label for="documentType">
+                        Document Type
+                    </label>
+
+                    <select id="documentType" name="document_type" required>
+                        <option value="">Select document type</option>
+                        <option value="offer_letter">Offer Letter</option>
+                        <option value="appointment_letter">Appointment Letter</option>
+                        <option value="experience_letter">Experience Letter</option>
+                        <option value="joining_letter">Joining Letter</option>
+                        <option value="salary_slip">Salary Slip</option>
+                        <option value="certificate">Certificate</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <!-- FILE -->
+                <div class="form-group">
+                    <label for="file">
+                        Document File
+                    </label>
+
+                    <input type="file" id="file" name="file" accept=".pdf,.png,.jpg,.jpeg" required>
+
+                    <div class="hint">
+                        PDF, PNG, JPG or JPEG. Maximum size: 10 MB.
+                    </div>
+
+                    <div id="fileName" class="file-name"></div>
+                </div>
+
+                <!-- SUBMIT -->
+                <button type="submit" id="submitButton">
+                    Send Document
+                </button>
+
+            </form>
+
+            <!-- SUCCESS DOCUMENT -->
+            <div id="documentPreview" class="document-preview">
+                <h3>Document Sent</h3>
+
+                <p>
+                    <strong>Name:</strong>
+                    <span id="resultName"></span>
+                </p>
+
+                <p>
+                    <strong>Type:</strong>
+                    <span id="resultType"></span>
+                </p>
+
+                <p>
+                    <strong>User ID:</strong>
+                    <span id="resultUser"></span>
+                </p>
+
+                <a id="resultFile" href="#" target="_blank">
+                    Open Uploaded Document
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+
+        // ============================================================
+        // CONFIG
+        // ============================================================
+
+        const API_URL = "http://localhost:5000";
+
+
+        // ============================================================
+        // ELEMENTS
+        // ============================================================
+
+        const form = document.getElementById("offerForm");
+        const submitButton = document.getElementById("submitButton");
+
+        const message = document.getElementById("message");
+
+        const fileInput = document.getElementById("file");
+        const fileName = document.getElementById("fileName");
+
+        const documentPreview =
+            document.getElementById("documentPreview");
+
+        const resultName =
+            document.getElementById("resultName");
+
+        const resultType =
+            document.getElementById("resultType");
+
+        const resultUser =
+            document.getElementById("resultUser");
+
+        const resultFile =
+            document.getElementById("resultFile");
+
+
+        // ============================================================
+        // SHOW MESSAGE
+        // ============================================================
+
+        function showMessage(text, type) {
+
+            message.textContent = text;
+
+            message.className = "message " + type;
+        }
+
+
+        // ============================================================
+        // FILE SELECT
+        // ============================================================
+
+        fileInput.addEventListener("change", () => {
+
+            if (!fileInput.files.length) {
+                fileName.textContent = "";
+                return;
+            }
+
+            const file = fileInput.files[ 0 ];
+
+            const sizeMB =
+                file.size / (1024 * 1024);
+
+            if (sizeMB > 10) {
+
+                fileInput.value = "";
+
+                fileName.textContent = "";
+
+                showMessage(
+                    "File is larger than 10 MB.",
+                    "error"
+                );
+
+                return;
+            }
+
+            fileName.textContent =
+                `Selected: ${file.name}`;
+        });
+
+
+        // ============================================================
+        // SUBMIT
+        // ============================================================
+
+        form.addEventListener("submit", async (event) => {
+
+            event.preventDefault();
+
+            message.className = "message";
+
+            documentPreview.style.display = "none";
+
+            const userId =
+                document.getElementById("userId").value.trim();
+
+            const documentName =
+                document.getElementById("documentName").value.trim();
+
+            const documentType =
+                document.getElementById("documentType").value;
+
+            const file =
+                fileInput.files[ 0 ];
+
+
+            // --------------------------------------------------------
+            // CLIENT VALIDATION
+            // --------------------------------------------------------
+
+            if (!userId) {
+
+                showMessage(
+                    "Please enter the user ID.",
+                    "error"
+                );
+
+                return;
+            }
+
+            if (!documentName) {
+
+                showMessage(
+                    "Please enter a document name.",
+                    "error"
+                );
+
+                return;
+            }
+
+            if (!documentType) {
+
+                showMessage(
+                    "Please select a document type.",
+                    "error"
+                );
+
+                return;
+            }
+
+            if (!file) {
+
+                showMessage(
+                    "Please select a document.",
+                    "error"
+                );
+
+                return;
+            }
+
+
+            // --------------------------------------------------------
+            // CREATE FORM DATA
+            // --------------------------------------------------------
+
+            const formData = new FormData();
+
+            formData.append(
+                "user_id",
+                userId
+            );
+
+            formData.append(
+                "document_name",
+                documentName
+            );
+
+            formData.append(
+                "document_type",
+                documentType
+            );
+
+            formData.append(
+                "file",
+                file
+            );
+
+
+            // --------------------------------------------------------
+            // DISABLE BUTTON
+            // --------------------------------------------------------
+
+            submitButton.disabled = true;
+
+            submitButton.textContent =
+                "Sending...";
+
+
+            try {
+
+                // ----------------------------------------------------
+                // SEND REQUEST
+                // ----------------------------------------------------
+
+                const response = await fetch(
+                    `${API_URL}/offer/send`,
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
+
+
+                const data =
+                    await response.json();
+
+
+                // ----------------------------------------------------
+                // ERROR
+                // ----------------------------------------------------
+
+                if (!response.ok || !data.success) {
+
+                    throw new Error(
+                        data.message ||
+                        "Failed to send document."
+                    );
+                }
+
+
+                // ----------------------------------------------------
+                // SUCCESS
+                // ----------------------------------------------------
+
+                showMessage(
+                    "Document sent successfully.",
+                    "success"
+                );
+
+
+                const document =
+                    data.document;
+
+
+                resultName.textContent =
+                    document.document_name;
+
+                resultType.textContent =
+                    document.document_type;
+
+                resultUser.textContent =
+                    document.user_id;
+
+
+                resultFile.href =
+                    `${API_URL}${document.file_url}`;
+
+
+                documentPreview.style.display =
+                    "block";
+
+
+                // ----------------------------------------------------
+                // RESET FORM
+                // ----------------------------------------------------
+
+                form.reset();
+
+                fileName.textContent = "";
+
+
+            } catch (error) {
+
+                console.error(
+                    "Send document error:",
+                    error
+                );
+
+                showMessage(
+                    error.message ||
+                    "Something went wrong.",
+                    "error"
+                );
+
+            } finally {
+
+                submitButton.disabled = false;
+
+                submitButton.textContent =
+                    "Send Document";
+            }
+
+        });
+
+    </script>
+
+</body>
+
+</html>

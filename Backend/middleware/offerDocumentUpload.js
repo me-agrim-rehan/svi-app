@@ -1,20 +1,19 @@
-// Backend/middleware/signedDocumentUpload.js
 import multer from "multer";
 import path from "path";
 import fs from "fs";
 
-const uploadDir = "uploads/signed-documents";
+const uploadDir = "uploads/offer-documents";
 
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-console.log("SIGNED DOCUMENT UPLOAD MIDDLEWARE LOADED");
+console.log("OFFER DOCUMENT UPLOAD MIDDLEWARE LOADED");
 console.log("Upload directory:", path.resolve(uploadDir));
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        console.log("MULTER DESTINATION CALLED");
+        console.log("OFFER MULTER DESTINATION CALLED");
         console.log("Field name:", file.fieldname);
         console.log("Original name:", file.originalname);
         console.log("MIME:", file.mimetype);
@@ -23,7 +22,7 @@ const storage = multer.diskStorage({
     },
 
     filename: (req, file, cb) => {
-        console.log("MULTER FILENAME CALLED");
+        console.log("OFFER MULTER FILENAME CALLED");
 
         const extension = path.extname(
             file.originalname
@@ -40,7 +39,7 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-    console.log("MULTER FILE FILTER CALLED");
+    console.log("OFFER MULTER FILE FILTER CALLED");
     console.log("Field:", file.fieldname);
     console.log("Name:", file.originalname);
     console.log("MIME:", file.mimetype);
@@ -52,7 +51,7 @@ const fileFilter = (req, file, cb) => {
     ];
 
     if (!allowedMimeTypes.includes(file.mimetype)) {
-        console.log("MULTER REJECTED FILE");
+        console.log("OFFER MULTER REJECTED FILE");
 
         return cb(
             new Error(
@@ -61,12 +60,12 @@ const fileFilter = (req, file, cb) => {
         );
     }
 
-    console.log("MULTER ACCEPTED FILE");
+    console.log("OFFER MULTER ACCEPTED FILE");
 
     cb(null, true);
 };
 
-const uploadSignedDocument = multer({
+const uploadOfferDocument = multer({
     storage,
     fileFilter,
     limits: {
@@ -74,4 +73,4 @@ const uploadSignedDocument = multer({
     },
 });
 
-export default uploadSignedDocument;
+export default uploadOfferDocument;
