@@ -3,10 +3,11 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-
+import 'dart:developer' as developer;
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/app_document.dart';
 import '../../../../services/docs_service.dart';
+import '../../../../core/network/api_constants.dart';
 
 class DocsPage extends StatefulWidget {
   const DocsPage({super.key, required this.phone});
@@ -60,7 +61,9 @@ class _DocsPageState extends State<DocsPage> {
       return;
     }
 
-    final uri = Uri.parse(doc.url);
+    final uri = Uri.parse(
+  "${ApiConstants.baseUrl}${doc.url}",
+);
 
     final launched = await launchUrl(
       uri,

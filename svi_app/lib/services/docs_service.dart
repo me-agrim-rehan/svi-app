@@ -12,46 +12,47 @@ import '../core/models/app_document.dart';
 
 class DocsService {
   /// GET /users/documents?phone={phone}
-  Future<List<AppDocument>> fetchDocuments({
-    required String phone,
-  }) async {
-    try {
-      final uri = Uri.parse(
-        "${ApiConstants.baseUrl}/users/documents",
-      ).replace(
-        queryParameters: {
-          "phone": phone,
-        },
-      );
+  /// GET /offer/my-documents?phone={phone}
+Future<List<AppDocument>> fetchDocuments({
+  required String phone,
+}) async {
+  try {
+    final uri = Uri.parse(
+      "${ApiConstants.baseUrl}/offer/my-documents",
+    ).replace(
+      queryParameters: {
+        "phone": phone,
+      },
+    );
 
-      developer.log("=== fetchDocuments() ===");
-      developer.log("Request: $uri");
+    developer.log("=== fetchDocuments() ===");
+    developer.log("Request: $uri");
 
-      final response = await http.get(uri);
+    final response = await http.get(uri);
 
-      developer.log("Status: ${response.statusCode}");
-      developer.log("Response: ${response.body}");
+    developer.log("Status: ${response.statusCode}");
+    developer.log("Response: ${response.body}");
 
-      if (response.statusCode != 200) {
-        return [];
-      }
-
-      final data = jsonDecode(response.body);
-
-      final List docs = data["documents"] ?? [];
-
-      return docs
-          .map((json) => AppDocument.fromJson(json))
-          .toList();
-    } catch (e, s) {
-      developer.log(
-        "fetchDocuments Exception: $e",
-        stackTrace: s,
-      );
-
+    if (response.statusCode != 200) {
       return [];
     }
+
+    final data = jsonDecode(response.body);
+
+    final List docs = data["documents"] ?? [];
+
+    return docs
+        .map((json) => AppDocument.fromJson(json))
+        .toList();
+  } catch (e, s) {
+    developer.log(
+      "fetchDocuments Exception: $e",
+      stackTrace: s,
+    );
+
+    return [];
   }
+}
 
   /// POST /signed-documents/upload
   ///
