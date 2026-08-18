@@ -1,0 +1,470 @@
+.page {
+  min-height: 100vh;
+  padding: 32px;
+  background: #f5f6f8;
+  box-sizing: border-box;
+}
+
+/* ==========================================================
+   BACK BUTTON
+========================================================== */
+
+.backButton {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin-bottom: 22px;
+
+  font-family: inherit;
+  font-size: 14px;
+  color: #555;
+  cursor: pointer;
+}
+
+.backButton:hover {
+  color: #111;
+}
+
+/* ==========================================================
+   JOB CARD
+========================================================== */
+
+.jobCard {
+  background: #fff;
+  border: 1px solid #e2e2e2;
+  border-radius: 12px;
+  padding: 28px;
+  box-sizing: border-box;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.jobHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.jobTitle {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 600;
+  color: #111;
+}
+
+.company {
+  margin: 7px 0 0;
+  font-size: 14px;
+  color: #666;
+}
+
+/* ==========================================================
+   APPLICATION COUNT
+========================================================== */
+
+.applicationBadge {
+  min-width: 70px;
+  padding: 10px 14px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  border-radius: 9px;
+  background: #f5f7fa;
+
+  font-size: 20px;
+  font-weight: 600;
+  color: #222;
+}
+
+.applicationBadge span {
+  margin-top: 3px;
+  font-size: 11px;
+  font-weight: 400;
+  color: #777;
+}
+
+/* ==========================================================
+   JOB INFORMATION
+========================================================== */
+
+.jobInfo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 35px;
+
+  margin-top: 25px;
+  padding-top: 20px;
+
+  border-top: 1px solid #ededed;
+}
+
+.jobInfo > div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  font-size: 14px;
+  color: #222;
+}
+
+.label {
+  font-size: 11px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ==========================================================
+   TAGS
+========================================================== */
+
+.tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.tag {
+  padding: 6px 10px;
+
+  border: 1px solid #e2e2e2;
+  border-radius: 6px;
+
+  font-size: 12px;
+  color: #555;
+  background: #fafafa;
+}
+
+/* ==========================================================
+   DESCRIPTION
+========================================================== */
+
+.description {
+  margin-top: 25px;
+  padding-top: 22px;
+  border-top: 1px solid #ededed;
+}
+
+.description h3 {
+  margin: 0 0 9px;
+
+  font-size: 15px;
+  font-weight: 600;
+  color: #222;
+}
+
+.description p {
+  margin: 0;
+
+  max-width: 900px;
+
+  font-size: 14px;
+  line-height: 1.7;
+  color: #666;
+}
+
+/* ==========================================================
+   APPLICANTS HEADER
+========================================================== */
+
+.applicantsHeader {
+  margin-top: 32px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.applicantsHeader h2 {
+  margin: 0;
+
+  font-size: 21px;
+  font-weight: 600;
+  color: #111;
+}
+
+.applicantsHeader p {
+  margin: 5px 0 0;
+
+  font-size: 13px;
+  color: #777;
+}
+
+.totalApplicants {
+  min-width: 32px;
+  height: 32px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid #ddd;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ==========================================================
+   APPLICANTS
+========================================================== */
+
+.applicants {
+  margin-top: 15px;
+
+  background: #fff;
+  border: 1px solid #e2e2e2;
+  border-radius: 12px;
+
+  overflow: hidden;
+}
+
+.applicantCard {
+  min-height: 105px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 25px;
+
+  padding: 22px 24px;
+
+  box-sizing: border-box;
+
+  border-bottom: 1px solid #ededed;
+}
+
+.applicantCard:last-child {
+  border-bottom: none;
+}
+
+/* ==========================================================
+   APPLICANT INFO
+========================================================== */
+
+.applicantMain {
+  min-width: 0;
+}
+
+.applicantName {
+  display: block;
+
+  padding: 0;
+  border: none;
+  background: transparent;
+
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+
+  color: #111;
+
+  cursor: pointer;
+  text-align: left;
+}
+
+.applicantName:hover {
+  text-decoration: underline;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+
+  margin-top: 9px;
+
+  font-size: 12px;
+  color: #666;
+}
+
+/* ==========================================================
+   ACTIONS
+========================================================== */
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-shrink: 0;
+}
+
+.status {
+  padding: 6px 12px;
+
+  border-radius: 20px;
+
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.processing {
+  background: #fff4d6;
+  color: #9a6500;
+}
+
+.accepted {
+  background: #e5f6eb;
+  color: #18753b;
+}
+
+.rejected {
+  background: #fde8e8;
+  color: #b42323;
+}
+
+/* ==========================================================
+   BUTTONS
+========================================================== */
+
+.buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.accept,
+.reject {
+  padding: 8px 16px;
+
+  border-radius: 7px;
+
+  font-family: inherit;
+  font-size: 12px;
+
+  cursor: pointer;
+}
+
+.accept {
+  border: 1px solid #bfe5cf;
+  background: #f0faf4;
+  color: #16733a;
+}
+
+.accept:hover {
+  background: #e5f6eb;
+}
+
+.reject {
+  border: 1px solid #f2caca;
+  background: #fff4f4;
+  color: #c62828;
+}
+
+.reject:hover {
+  background: #fde8e8;
+}
+
+/* ==========================================================
+   LOADING
+========================================================== */
+
+.loading {
+  padding: 50px;
+  text-align: center;
+
+  font-size: 14px;
+  color: #666;
+}
+
+/* ==========================================================
+   ERROR
+========================================================== */
+
+.error {
+  padding: 20px;
+
+  border: 1px solid #f1caca;
+  border-radius: 10px;
+
+  background: #fff5f5;
+
+  color: #b42323;
+  font-size: 14px;
+}
+
+/* ==========================================================
+   EMPTY
+========================================================== */
+
+.empty {
+  margin-top: 15px;
+  padding: 50px;
+
+  border: 1px solid #e2e2e2;
+  border-radius: 12px;
+
+  background: #fff;
+
+  text-align: center;
+
+  color: #777;
+  font-size: 14px;
+}
+
+/* ==========================================================
+   RESPONSIVE
+========================================================== */
+
+@media (max-width: 800px) {
+  .page {
+    padding: 20px;
+  }
+
+  .jobCard {
+    padding: 20px;
+  }
+
+  .jobHeader {
+    flex-direction: column;
+  }
+
+  .applicationBadge {
+    align-self: flex-start;
+  }
+
+  .jobInfo {
+    gap: 20px;
+  }
+
+  .applicantCard {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 500px) {
+  .page {
+    padding: 14px;
+  }
+
+  .jobTitle {
+    font-size: 21px;
+  }
+
+  .jobInfo {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .meta {
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .actions {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+}

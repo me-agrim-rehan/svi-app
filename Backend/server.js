@@ -23,6 +23,8 @@ import tempRegisterOtpRoutes from "./routes/temp/tempRegisterOtpRoutes.js";
 import adminAuthRoutes from "./routes/adminside/adminAuthRoutes.js"; // admin login 
 import adminUserRoutes from "./routes/adminside/adminUserRoutes.js"; // admin routes for all user info
 import adminJobRoutes from "./routes/adminside/adminJobRoutes.js"; // admin job creation and get
+import adminApplicationRoutes from "./routes/adminside/adminApplicationRoutes.js"; // admin job creation and get
+
 dotenv.config();
 
 const app = express();
@@ -30,6 +32,7 @@ const app = express();
 
 const allowedOrigins = [
   process.env.ADMIN_FRONTEND_URL,
+  process.env.FLUTTER_FRONTEND_URL,
 ];
 
 app.use(
@@ -80,6 +83,7 @@ app.use("/offer", userOfferRoutes);
 app.use("/admin", adminAuthRoutes); // admin login
 app.use("/admin/users", adminUserRoutes); // admin routes for all user info
 app.use("/admin/jobs", adminJobRoutes); // admin job creation and get
+app.use("/admin/job-applications", adminApplicationRoutes); // admin job applications
 
 pool.query("SELECT NOW()")
   .then((result) => {

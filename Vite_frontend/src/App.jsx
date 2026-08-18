@@ -7,7 +7,8 @@ import UserInfo from "./pages/UserInfo";
 import UserDetails from "./pages/UserDetails";
 import Jobs from "./pages/AllJobs";
 import CreateJob from "./pages/CreateJob";
-
+import Applications from "./pages/Applications";
+import JobApplicationDetails from "./pages/JobApplicationDetails";
 function App() {
   return (
     <Routes>
@@ -29,6 +30,8 @@ function App() {
         <Route path="/dashboard/jobs" element={<Jobs />} />
 
         <Route path="/dashboard/jobs/create" element={<CreateJob />} />
+        <Route path="/dashboard/applications" element={<Applications />} />
+        <Route path="/dashboard/applications/:jobId" element={<JobApplicationDetails />} />
       </Route>
 
       {/* Unknown routes */}

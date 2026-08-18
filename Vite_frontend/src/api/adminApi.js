@@ -113,21 +113,51 @@ export async function createAdminJob(job) {
   return data;
 }
 export async function getAdminJobs() {
-  const response = await fetch(
-    `${API_BASE_URL}/admin/jobs`,
-    {
-      method: 'GET',
-      credentials: 'include',
-    }
-  )
+  const response = await fetch(`${API_BASE_URL}/admin/jobs`, {
+    method: "GET",
+    credentials: "include",
+  });
 
-  const data = await response.json()
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to fetch jobs");
+  }
+
+  return data;
+}
+
+export async function getJobApplications() {
+  const response = await fetch(`${API_BASE_URL}/admin/job-applications`, {
+    method: "GET",
+    credentials: "include",
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to fetch jobs");
+  }
+
+  return data;
+}
+
+export async function getJobApplicationsByJob(jobId) {
+  const response = await fetch(
+    `${API_BASE_URL}/admin/job-applications/job/${jobId}`,
+    {
+      method: "GET",
+      credentials: "include",
+    }
+  );
+
+  const data = await response.json();
 
   if (!response.ok) {
     throw new Error(
-      data.message || 'Failed to fetch jobs'
-    )
+      data.message || "Failed to fetch job applications"
+    );
   }
 
-  return data
+  return data;
 }

@@ -1,0 +1,382 @@
+.page {
+  min-height: 100vh;
+  padding: 32px 36px 50px;
+  background: #f7f8fa;
+  color: #171717;
+  box-sizing: border-box;
+}
+
+/* ==========================================================
+   HEADER
+========================================================== */
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+
+  margin-bottom: 32px;
+}
+
+.title {
+  margin: 0;
+
+  font-size: 28px;
+  line-height: 1.2;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  margin: 8px 0 0;
+
+  font-size: 14px;
+  line-height: 1.5;
+  color: #777;
+}
+
+.count {
+  min-width: 76px;
+  padding: 10px 14px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  border: 1px solid #e4e5e7;
+  border-radius: 10px;
+
+  background: #fff;
+
+  font-size: 20px;
+  line-height: 1.1;
+  font-weight: 650;
+}
+
+.count span {
+  margin-top: 4px;
+
+  font-size: 11px;
+  font-weight: 400;
+  color: #888;
+}
+
+/* ==========================================================
+   CATEGORY
+========================================================== */
+
+.categories {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.categorySection {
+  min-width: 0;
+}
+
+.categoryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 10px;
+  padding: 0 4px;
+}
+
+.categoryHeader h2 {
+  margin: 0;
+
+  font-size: 17px;
+  font-weight: 650;
+  color: #222;
+}
+
+.categoryHeader span {
+  font-size: 12px;
+  color: #888;
+}
+
+/* ==========================================================
+   JOB LIST
+========================================================== */
+
+.jobs {
+  overflow: hidden;
+
+  border: 1px solid #e3e4e6;
+  border-radius: 12px;
+
+  background: #fff;
+}
+
+/* ==========================================================
+   JOB CARD
+========================================================== */
+
+.jobCard {
+  position: relative;
+
+  padding: 20px 22px;
+
+  background: #fff;
+
+  cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.jobCard + .jobCard {
+  border-top: 1px solid #ededed;
+}
+
+.jobCard:hover {
+  background: #fafafa;
+}
+
+/* subtle clickable indicator */
+
+.jobCard::after {
+  content: "›";
+
+  position: absolute;
+  right: 20px;
+  top: 50%;
+
+  transform: translateY(-50%);
+
+  font-size: 22px;
+  color: #b4b4b4;
+
+  transition:
+    transform 0.15s ease,
+    color 0.15s ease;
+}
+
+.jobCard:hover::after {
+  transform: translate(3px, -50%);
+  color: #555;
+}
+
+/* ==========================================================
+   JOB HEADER
+========================================================== */
+
+.jobHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 30px;
+
+  padding-right: 30px;
+}
+
+.jobName {
+  margin: 0;
+
+  font-size: 16px;
+  line-height: 1.35;
+  font-weight: 600;
+
+  color: #171717;
+}
+
+.company {
+  margin: 5px 0 0;
+
+  font-size: 13px;
+  color: #777;
+}
+
+/* ==========================================================
+   APPLICANT COUNT
+========================================================== */
+
+.applicationCount {
+  flex-shrink: 0;
+
+  min-width: 92px;
+
+  padding: 7px 11px;
+
+  border: 1px solid #e1e3e6;
+  border-radius: 7px;
+
+  background: #f8f9fa;
+
+  text-align: center;
+
+  font-size: 12px;
+  font-weight: 550;
+
+  color: #444;
+}
+
+/* ==========================================================
+   JOB INFORMATION
+========================================================== */
+
+.jobInfo {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 8px;
+
+  margin-top: 16px;
+  padding-right: 35px;
+}
+
+.jobInfo span {
+  display: inline-flex;
+  align-items: center;
+
+  min-height: 28px;
+  padding: 0 9px;
+
+  border: 1px solid #ececee;
+  border-radius: 6px;
+
+  background: #fafafa;
+
+  font-size: 11px;
+  color: #666;
+}
+
+/* ==========================================================
+   SUBCATEGORY
+========================================================== */
+
+.subcategory {
+  display: inline-flex;
+  align-items: center;
+
+  margin-top: 13px;
+  padding: 5px 9px;
+
+  border-radius: 5px;
+
+  background: #f1f2f4;
+
+  font-size: 11px;
+  font-weight: 500;
+
+  color: #555;
+}
+
+/* ==========================================================
+   LOADING
+========================================================== */
+
+.loading {
+  min-height: 300px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 14px;
+  color: #777;
+}
+
+/* ==========================================================
+   ERROR
+========================================================== */
+
+.error {
+  padding: 16px 18px;
+
+  border: 1px solid #f0cccc;
+  border-radius: 9px;
+
+  background: #fff7f7;
+
+  font-size: 14px;
+  color: #b42323;
+}
+
+/* ==========================================================
+   EMPTY
+========================================================== */
+
+.empty {
+  padding: 60px 20px;
+
+  border: 1px solid #e3e4e6;
+  border-radius: 12px;
+
+  background: #fff;
+
+  text-align: center;
+
+  font-size: 14px;
+  color: #777;
+}
+
+/* ==========================================================
+   RESPONSIVE
+========================================================== */
+
+@media (max-width: 700px) {
+  .page {
+    padding: 22px 18px 40px;
+  }
+
+  .header {
+    align-items: flex-start;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .jobCard {
+    padding: 18px;
+  }
+
+  .jobHeader {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .applicationCount {
+    min-width: auto;
+  }
+
+  .jobInfo {
+    padding-right: 0;
+  }
+
+  .jobCard::after {
+    display: none;
+  }
+}
+
+@media (max-width: 450px) {
+  .page {
+    padding: 18px 12px 30px;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .count {
+    align-self: flex-start;
+  }
+
+  .jobInfo {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .jobInfo span {
+    width: fit-content;
+  }
+}
