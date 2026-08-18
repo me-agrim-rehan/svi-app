@@ -4,6 +4,7 @@ import express from "express";
 import pool from "./db.js";
 // import otpRoutes from "./routes/registerOtpRoutes.js"; twilio expired
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import registrationRoutes from "./routes/registrationRoutes.js";
 import jobRoutes from "./routes/jobRoutes.js";
 // import loginRoutes from "./routes/loginOtpRoutes.js"; twilio expired
@@ -18,12 +19,38 @@ import userOfferRoutes from "./routes/offer/userOfferRoutes.js";
 import tempLoginOtpRoutes from "./routes/temp/tempLoginOtpRoutes.js";
 import tempRegisterOtpRoutes from "./routes/temp/tempRegisterOtpRoutes.js";
 
+// admin routes
+import adminAuthRoutes from "./routes/adminside/adminAuthRoutes.js"; // admin login 
+import adminUserRoutes from "./routes/adminside/adminUserRoutes.js"; // admin routes for all user info
+import adminJobRoutes from "./routes/adminside/adminJobRoutes.js"; // admin job creation and get
 dotenv.config();
 
 const app = express();
 
-app.use(cors());
+
+const allowedOrigins = [
+  process.env.ADMIN_FRONTEND_URL,
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Flutter/mobile requests generally don't send an Origin header.
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+  })
+);
 app.use(express.json());
+app.use(cookieParser());
 
 // Serve locally uploaded files
 app.use("/uploads", express.static("uploads"));
@@ -49,8 +76,10 @@ app.use("/apply-job", applyJobRoutes);
 app.use("/signed-documents", signedDocumentRoutes);
 app.use("/offer", userOfferRoutes);
 
-// admin
-app.use("/admin", express.static("admin"));
+// admin routes real
+app.use("/admin", adminAuthRoutes); // admin login
+app.use("/admin/users", adminUserRoutes); // admin routes for all user info
+app.use("/admin/jobs", adminJobRoutes); // admin job creation and get
 
 pool.query("SELECT NOW()")
   .then((result) => {

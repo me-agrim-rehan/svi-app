@@ -1,0 +1,174 @@
+.page {
+  min-height: 100vh;
+  padding: 32px;
+  background: #f5f6f8;
+}
+
+.backButton {
+  display: inline-block;
+  margin-bottom: 24px;
+  color: #333;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.backButton:hover {
+  text-decoration: underline;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28px;
+  margin-bottom: 24px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 28px;
+  color: #222;
+}
+
+.header p {
+  margin: 8px 0 0;
+  color: #777;
+  font-size: 13px;
+}
+
+.verified,
+.notVerified {
+  padding: 7px 12px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.verified {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.notVerified {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.section {
+  padding: 26px;
+  margin-bottom: 20px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.section h2 {
+  margin: 0 0 20px;
+  font-size: 19px;
+  color: #222;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid #eeeeee;
+  border-radius: 8px;
+}
+
+.label {
+  font-size: 12px;
+  color: #777;
+  font-weight: 600;
+}
+
+.value {
+  font-size: 14px;
+  color: #222;
+  word-break: break-word;
+}
+
+.value a {
+  color: #333;
+  font-weight: 600;
+}
+
+.photo {
+  width: 180px;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.listItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 15px;
+  border: 1px solid #eeeeee;
+  border-radius: 8px;
+}
+
+.listItem strong {
+  display: block;
+  color: #222;
+  font-size: 14px;
+}
+
+.listItem span {
+  display: block;
+  margin-top: 5px;
+  color: #777;
+  font-size: 13px;
+}
+
+.listItem a {
+  color: #333;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.status {
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #f1f1f1;
+  color: #444 !important;
+  font-size: 12px !important;
+}
+
+.empty {
+  margin: 0;
+  color: #777;
+  font-size: 14px;
+}
+
+.message {
+  padding: 40px;
+  text-align: center;
+  color: #777;
+}
+
+.error {
+  padding: 20px;
+  border-radius: 8px;
+  background: #ffebee;
+  color: #c62828;
+}
